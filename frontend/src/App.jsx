@@ -1,11 +1,10 @@
 import "./App.css";
 import "./index.css";
-import Landingpages from "./pages/Landingpages";
+import Landingpages from "./modules/public/pages/Landingpages";
 function App() {
   return (
     <div className="app ">
-
-    <Landingpages />
+      <Landingpages />
     </div>
   );
 }
