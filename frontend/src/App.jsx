@@ -1,10 +1,11 @@
 import "./App.css";
 import "./index.css";
+import Landingpages from "./pages/Landingpages";
 function App() {
   return (
-    <div className="flex items-center ">
-     <h3> Hello SMS</h3>
+    <div className="app ">
 
+    <Landingpages />
     </div>
   );
 }
