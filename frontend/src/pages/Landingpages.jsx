@@ -1,9 +1,9 @@
-import Navebar from "../components/Navebar";   
-import Herosection from '../components/Hero.jsx';
-import Features from '../components/Features.jsx';
-import Builtfor from '../components/Builtfor.jsx';
-import Getstarted from '../components/Getstarted.jsx';
-import Footer from '../components/Footer.jsx';
+import Navebar from "../components/landing/Navebar";   
+import Herosection from '../components/landing/Hero.jsx';
+import Features from '../components/landing/Features.jsx';
+import Builtfor from '../components/landing/Builtfor.jsx';
+import Getstarted from '../components/landing//Getstarted.jsx';
+import Footer from '../components/landing/Footer.jsx';
 const Landingpages =() =>{
     return (
         <div>
