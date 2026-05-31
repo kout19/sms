@@ -1,44 +1,44 @@
-import {Users, BookOpen, GraduationCap, TrendingUp} from 'lucide-react'
+import { Users, BookOpen, GraduationCap, TrendingUp } from "lucide-react";
 import StateCard from "../components/StateCard";
 import AttendanceTrendChart from "../components/AttendanceTrendChart";
 import EnrollmentByGradeChart from "../components/EnrollmentByGradeChart";
 import DepartmentDistributionChart from "../components/DepartmentDistributionChart";
+import RecentActivitiesCard from "../components/RecentActivitiesCard";
 const AdminDashboard = () => {
-
-  const cards=[
+  const cards = [
     {
       title: "Total Students",
-      value:"1,284",
-      change:"+12 from last month",
-      isPosetive:true,
-      icon:Users,
-      iconBgColor:"bg-blue-600"
+      value: "1,284",
+      change: "+12 from last month",
+      isPosetive: true,
+      icon: Users,
+      iconBgColor: "bg-blue-600",
     },
     {
-      title:"Total Teachers",
-      value:"87",
-      change:"+2 from last month",
-      isPosetive:true,
-      icon:GraduationCap,
-      iconBgColor:"bg-green-600"
+      title: "Total Teachers",
+      value: "87",
+      change: "+2 from last month",
+      isPosetive: true,
+      icon: GraduationCap,
+      iconBgColor: "bg-green-600",
     },
     {
-      title:"Total Classes",
-      value:"42",
-      change:"+2 from last month",
-      isPosetive:true,
-      icon:BookOpen,
-      iconBgColor:"bg-indigo-700"
+      title: "Total Classes",
+      value: "42",
+      change: "+2 from last month",
+      isPosetive: true,
+      icon: BookOpen,
+      iconBgColor: "bg-indigo-700",
     },
     {
-      title:"Total Attendance",
-      value:"94.2",
-      change:"+2.1 from last month",
-      isPosetive:true,
-      icon:TrendingUp,
-      iconBgColor:"bg-red-600"
-    }
-  ]
+      title: "Total Attendance",
+      value: "94.2",
+      change: "+2.1 from last month",
+      isPosetive: true,
+      icon: TrendingUp,
+      iconBgColor: "bg-red-600",
+    },
+  ];
 
   return (
     <div className="w-full py-12 px-6">
@@ -66,6 +66,7 @@ const AdminDashboard = () => {
           <AttendanceTrendChart />
           <EnrollmentByGradeChart />
           <DepartmentDistributionChart />
+          <RecentActivitiesCard />
         </div>
       </div>
     </div>

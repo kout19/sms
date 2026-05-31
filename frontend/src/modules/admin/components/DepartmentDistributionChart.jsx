@@ -16,11 +16,11 @@ const DepartmentDistributionChart = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-w-[480px]">
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-full">
       <h2 className="text-slate-600 font-medium mb-4">
         Department Distribution
       </h2>
-      <div className="w-full max-w-[300px] mx-auto">
+      <div className="w-full max-w-[280px] mx-auto">
         <Doughnut data={data} />
       </div>
     </div>
