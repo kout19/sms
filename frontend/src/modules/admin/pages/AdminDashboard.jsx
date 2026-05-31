@@ -1,6 +1,8 @@
 import {Users, BookOpen, GraduationCap, TrendingUp} from 'lucide-react'
 import StateCard from "../components/StateCard";
-
+import AttendanceTrendChart from "../components/AttendanceTrendChart";
+import EnrollmentByGradeChart from "../components/EnrollmentByGradeChart";
+import DepartmentDistributionChart from "../components/DepartmentDistributionChart";
 const AdminDashboard = () => {
 
   const cards=[
@@ -37,6 +39,7 @@ const AdminDashboard = () => {
       iconBgColor:"bg-red-600"
     }
   ]
+
   return (
     <div className="w-full py-12 px-6">
       <div>
@@ -58,6 +61,11 @@ const AdminDashboard = () => {
               iconBgColor={card.iconBgColor}
             />
           ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <AttendanceTrendChart />
+          <EnrollmentByGradeChart />
+          <DepartmentDistributionChart />
         </div>
       </div>
     </div>
