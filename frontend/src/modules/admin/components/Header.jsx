@@ -4,7 +4,7 @@ const Header =()=>{
 
     return(
         <div className="flex items-center justify-between">
-            <h1> Header</h1>
+            <h1>  Admin Header</h1>
         </div>
     )
 }
