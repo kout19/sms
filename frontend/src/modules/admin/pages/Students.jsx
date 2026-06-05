@@ -153,7 +153,6 @@ const Students = () => {
     setSearchTerm(val);
     setCurrentPage(1);
   };
-
   const handleClassFilter = (val) => {
     setSelectedClass(val);
     setCurrentPage(1);
@@ -230,9 +229,13 @@ const Students = () => {
           </span>
         </div>
 
-        {/* ✅ THIS is the scrollable table area — not the browser */}
-        <div className="overflow-auto flex-1">
-          <table className=" min-w-[700px]">
+        {/* 
+          ✅ KEY FIX:
+          - On mobile (default): overflow-x-auto → table scrolls horizontally on its own
+          - On md and above: overflow-x-visible → table sits naturally, no scroll needed
+        */}
+        <div className="overflow-x-auto md:overflow-x-visible flex-1">
+          <table className="w-full min-w-[700px] md:min-w-0">
             <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-[28%]">
@@ -356,13 +359,12 @@ const Students = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
+        {/* Pagination */}
         <div className="px-5 py-3.5 border-t border-slate-100 flex items-center justify-between shrink-0 bg-white">
           <p className="text-xs text-slate-400">
             {filteredStudents.length} total students
           </p>
           <div className="flex items-center gap-1">
-            {/* Prev */}
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
@@ -371,7 +373,6 @@ const Students = () => {
               <ChevronLeft size={16} />
             </button>
 
-            {/* Page numbers */}
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
@@ -387,7 +388,6 @@ const Students = () => {
               </button>
             ))}
 
-            {/* Next */}
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
