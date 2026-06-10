@@ -5,6 +5,7 @@ import Settings from "../pages/Settings";
 import Students from "../pages/Students";
 import Teachers from "../pages/Teachers";
 import Classes from "../pages/Classes";
+import Attendance from "../pages/Attendance";
 
 
 const AdminRoutes = () => {
@@ -16,6 +17,7 @@ const AdminRoutes = () => {
         <Route path="students" element={<Students />}/>
         <Route path="teachers" element={<Teachers />}/>
         <Route path="classes" element={<Classes />}/>
+        <Route path="attendance" element={<Attendance />}/>
       </Route>
     </Routes>
   );

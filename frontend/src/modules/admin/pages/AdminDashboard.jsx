@@ -1,5 +1,5 @@
 import { Users, BookOpen, GraduationCap, TrendingUp } from "lucide-react";
-import StateCard from "../components/StateCard";
+import StateCard from "../cards/StateCard";
 import AttendanceTrendChart from "../components/AttendanceTrendChart";
 import EnrollmentByGradeChart from "../components/EnrollmentByGradeChart";
 import DepartmentDistributionChart from "../components/DepartmentDistributionChart";
