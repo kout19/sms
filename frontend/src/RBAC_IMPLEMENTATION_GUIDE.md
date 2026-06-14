@@ -1,0 +1,319 @@
+/\*\*
+
+- RBAC IMPLEMENTATION GUIDE
+- ========================
+-
+- This guide explains how the Role-Based Access Control (RBAC) system works
+- and how to use it in your components and routes.
+-
+- ## System Architecture
+-
+- The RBAC system is built on several layers:
+-
+- 1.  **Mock Data Layer** (mockUsers.js)
+- - Defines user profiles for each role
+- - Specifies permissions for each role
+- - Can be easily replaced with real backend API
+-
+- 2.  **Redux State** (authSlice.js)
+- - Manages authentication state
+- - Stores user info, tokens, session details
+- - Ready for JWT token handling
+-
+- 3.  **Utility Layer** (rbacUtils.js)
+- - Permission checking functions
+- - Role validation helpers
+- - Resource access control
+-
+- 4.  **Component Layer**
+- - ProtectedRoute: Guards routes based on roles/permissions
+- - CanAccess: Conditionally renders UI based on permissions
+- - RoleSwitcher: Testing tool for development
+-
+- 5.  **Hook Layer**
+- - useAuth: Access auth state and actions
+- - usePermission: Check permissions in components
+-
+- ## Roles and Permissions
+-
+- ### Admin
+- - Display Name: Administrator
+- - Permissions: manage:users, manage:roles, view:all_data, edit:all_data,
+-                manage:settings, view:reports, manage:classes, manage:attendance
+- - Access Level: All data
+-
+- ### Teacher
+- - Display Name: Teacher
+- - Permissions: view:students, edit:grades, view:classes, view:attendance,
+-                mark:attendance, view:schedule, view:announcements, post:announcements
+- - Access Level: Own classes and assigned students
+-
+- ### Student
+- - Display Name: Student
+- - Permissions: view:own_grades, view:own_attendance, view:own_schedule,
+-                view:announcements, view:messages
+- - Access Level: Own data only
+-
+- ### Parent
+- - Display Name: Parent
+- - Permissions: view:child_grades, view:child_attendance, view:child_schedule,
+-                view:messages, view:announcements
+- - Access Level: Child's data only
+-
+- ## Usage Patterns
+-
+- ### 1. Protecting Routes
+-
+- In your route definitions (e.g., AdminRoutes.jsx):
+-
+- ```jsx
+
+  ```
+- import { ProtectedRoute } from "../shared/utils";
+-
+- <Routes>
+- <Route
+-     path="/dashboard"
+-     element={
+-       <ProtectedRoute
+-         allowedRoles={["admin", "teacher"]}
+-         element={<Dashboard />}
+-         fallbackPath="/"
+-       />
+-     }
+- />
+- </Routes>
+- ```
+
+  ```
+-
+- ### 2. Using useAuth Hook
+-
+- In any component:
+-
+- ```jsx
+
+  ```
+- import { useAuth } from "../shared/utils";
+-
+- function MyComponent() {
+- const { user, isAuthenticated, can, logout } = useAuth();
+-
+- return (
+-     <div>
+-       <p>Hello {user?.name}</p>
+-       {can('edit:grades') && <EditButton />}
+-       <button onClick={logout}>Logout</button>
+-     </div>
+- );
+- }
+- ```
+
+  ```
+-
+- ### 3. Conditional Rendering with CanAccess
+-
+- ```jsx
+
+  ```
+- import { CanAccess } from "../shared/utils";
+-
+- <CanAccess permission="view:students">
+- <StudentList />
+- </CanAccess>
+-
+- <CanAccess
+- permissions={["view:students", "edit:grades"]}
+- fallback={<Unauthorized />}
+- >
+- <StudentEditor />
+- </CanAccess>
+-
+- <CanAccess anyPermission={["manage:users", "manage:roles"]}>
+- <ManagementPanel />
+- </CanAccess>
+- ```
+
+  ```
+-
+- ### 4. Using usePermission Hook
+-
+- ```jsx
+
+  ```
+- import { usePermission } from "../shared/utils";
+-
+- function AdminPanel() {
+- const { can, canAny, canAll, permissions, role } = usePermission();
+-
+- return (
+-     <div>
+-       {canAll(['manage:users', 'manage:roles']) && <UserManagement />}
+-       {canAny(['edit:grades', 'view:reports']) && <Dashboard />}
+-       <p>Your permissions: {permissions.join(', ')}</p>
+-     </div>
+- );
+- }
+- ```
+
+  ```
+-
+- ### 5. Switching Roles in Development
+-
+- Add the RoleSwitcher component to your layout (development only):
+-
+- ```jsx
+
+  ```
+- import { RoleSwitcher } from "../shared/utils";
+-
+- function App() {
+- return (
+-     <div>
+-       {process.env.NODE_ENV === 'development' && <RoleSwitcher />}
+-       <Routes>
+-         {/* routes */}
+-       </Routes>
+-     </div>
+- );
+- }
+- ```
+
+  ```
+-
+- ## Permission Checking Utilities
+-
+- All utilities are imported from rbacUtils.js:
+-
+- ```jsx
+
+  ```
+- import {
+- hasPermission, // Check single permission
+- hasAnyPermission, // Check if user has any of the permissions
+- hasAllPermissions, // Check if user has all permissions
+- hasRole, // Check if user's role matches
+- getRolePermissions, // Get all permissions for a role
+- getRoleInfo, // Get role display name and description
+- isAuthorized, // Check authorization
+- getAccessLevel, // Get resource access level
+- canAccessResource, // Check resource access
+- isSessionValid, // Validate session
+- getSessionTimeRemaining,
+- } from "../shared/utils";
+- ```
+
+  ```
+-
+- ## Backend Integration (Future)
+-
+- The system is designed to easily switch from mock data to real backend:
+-
+- 1.  Replace mockUsers.js with API calls
+- 2.  Replace loginAs action with real login API call
+- 3.  Replace token generation with real JWT tokens
+- 4.  Add API interceptor for token refresh
+- 5.  The RBAC logic and components remain unchanged
+-
+- Example migration:
+-
+- ```jsx
+
+  ```
+- // Current: authSlice.js
+- export const login = createAsyncThunk('auth/login', async (credentials) => {
+- // Replace: const user = mockUsers[credentials.role];
+- // With: const response = await api.post('/auth/login', credentials);
+- // return response.data;
+- });
+- ```
+
+  ```
+-
+- ## Security Best Practices
+-
+- 1.  **Always validate permissions on backend**
+- - Frontend RBAC is for UX, not security
+- - Backend must enforce all permissions
+-
+- 2.  **Never store sensitive data in state**
+- - Passwords should never be stored
+- - Tokens should have expiry times
+-
+- 3.  **Implement session timeout**
+- - Monitor session expiry
+- - Prompt users before timeout
+- - Auto-logout after expiry
+-
+- 4.  **Use HTTPS in production**
+- - Always use HTTPS for token transmission
+- - Set secure cookie flags
+-
+- 5.  **Implement CSRF protection**
+- - Use CSRF tokens for state-changing operations
+- - Validate origin headers
+-
+- 6.  **Regular security audits**
+- - Review permission configurations
+- - Test access control
+- - Update role definitions as needed
+-
+- ## Testing the RBAC System
+-
+- 1.  Use RoleSwitcher to quickly test different roles
+- 2.  Try accessing routes with different roles
+- 3.  Verify UI elements show/hide correctly
+- 4.  Test permission-based actions
+- 5.  Check console for access denial warnings
+-
+- ## Troubleshooting
+-
+- Issue: Route redirects even with correct role
+- - Check if user is authenticated (not null)
+- - Check if session is valid (not expired)
+- - Verify allowedRoles array includes user's role
+- - Check browser console for warnings
+-
+- Issue: UI shows when it shouldn't
+- - Verify permission names are correct
+- - Check that role has permission in rolePermissions
+- - Use browser React DevTools to inspect auth state
+-
+- Issue: Session expires unexpectedly
+- - Check sessionExpiry time
+- - Use refreshSession action to renew
+- - Implement auto-refresh before expiry
+-
+- ## File Structure
+-
+- src/
+- ├── features/auth/
+- │ ├── authSlice.js (Redux auth state)
+- │ └── mockUsers.js (Mock user data & permissions)
+- ├── shared/
+- │ ├── components/
+- │ │ ├── ProtectedRoute.jsx
+- │ │ ├── CanAccess.jsx
+- │ │ └── RoleSwitcher.jsx
+- │ ├── hooks/
+- │ │ ├── useAuth.js
+- │ │ └── usePermission.js
+- │ ├── utils/
+- │ │ ├── rbacUtils.js
+- │ │ └── index.js (exports)
+- │ └── styles/
+- │ └── RoleSwitcher.css
+- └── modules/
+-     ├── admin/
+-     ├── teacher/
+-     ├── student/
+-     └── parent/
+-
+- ## Next Steps
+-
+- 1.  Create role-specific route files for each module
+- 2.  Implement protected routes in each module
+- 3.  Add permission checks in components
+- 4.  Test with RoleSwitcher
+- 5.  Integrate with backend when ready
+      \*/

@@ -1,6 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, LogOut, ChevronDown, X, CheckCheck, GraduationCap,Users, Calendar  } from "lucide-react";
+import {
+  Bell,
+  LogOut,
+  ChevronDown,
+  X,
+  CheckCheck,
+  GraduationCap,
+  Users,
+  Calendar,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { getRoleInfo } from "../utils/rbacUtils";
 
 const initialNotifications = [
   {
@@ -25,12 +36,14 @@ const initialNotifications = [
     text: "A staff meeting has been scheduled for this Friday at 2:00 PM in the main hall.",
     time: "3 hrs ago",
     unread: false,
-    icon:Calendar,
+    icon: Calendar,
   },
 ];
 
 export default function AdminHeader() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const roleInfo = getRoleInfo(user?.role);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
@@ -86,7 +99,9 @@ export default function AdminHeader() {
         {/* Page Title */}
         <div>
           <h1 className="text-base font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-xs text-gray-400">Welcome back, Samuel</p>
+          <p className="text-xs text-gray-400">
+            Welcome back, {user?.firstName || "User"}
+          </p>
         </div>
 
         {/* Right side */}
@@ -142,44 +157,45 @@ export default function AdminHeader() {
 
                 <ul className="max-h-72 overflow-y-auto ">
                   {notifications.map((n) => {
-                    const Icon= n.icon;
-                    return(
-                    <li
-                      key={n.id}
-                      onClick={() => handleNotifClick(n)}
-                      className={`flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        n.unread ? "bg-blue-50/40" : ""
-                      }`}
-                    >
-                      <span className="text-lg shrink-0 mt-0.5">
-                        {<Icon size={16} />}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-gray-800 truncate">
-                          {n.title}
-                        </p>
-                        <p className="text-[12px] text-gray-500 truncate">
-                          {n.text}
-                        </p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          {n.time}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        {n.unread && (
-                          <span className="w-2 h-2 rounded-full bg-blue-500 mt-1" />
-                        )}
-                        {n.unread && (
-                          <button
-                            onClick={(e) => handleMarkOneRead(n.id, e)}
-                            className="text-[10px] text-gray-400 hover:text-blue-500 transition-colors"
-                            title="Mark as read"
-                          >
-                            ✓
-                          </button>
-                        )}
-                      </div>
-                    </li>
-                    )
+                    const Icon = n.icon;
+                    return (
+                      <li
+                        key={n.id}
+                        onClick={() => handleNotifClick(n)}
+                        className={`flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
+                          n.unread ? "bg-blue-50/40" : ""
+                        }`}
+                      >
+                        <span className="text-lg shrink-0 mt-0.5">
+                          {<Icon size={16} />}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-gray-800 truncate">
+                            {n.title}
+                          </p>
+                          <p className="text-[12px] text-gray-500 truncate">
+                            {n.text}
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            {n.time}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          {n.unread && (
+                            <span className="w-2 h-2 rounded-full bg-blue-500 mt-1" />
+                          )}
+                          {n.unread && (
+                            <button
+                              onClick={(e) => handleMarkOneRead(n.id, e)}
+                              className="text-[10px] text-gray-400 hover:text-blue-500 transition-colors"
+                              title="Mark as read"
+                            >
+                              ✓
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    );
                   })}
                 </ul>
 
@@ -206,13 +222,16 @@ export default function AdminHeader() {
               className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-blue-700 flex items-center justify-center text-[11px] font-semibold text-blue-100 shrink-0">
-                SA
+                {user?.firstName?.charAt(0)}
+                {user?.lastName?.charAt(0)}
               </div>
               <div className="text-left leading-tight hidden sm:block">
                 <p className="text-[13px] font-medium text-gray-900">
-                  Samuel A.
+                  {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-[11px] text-gray-400">Super Admin</p>
+                <p className="text-[11px] text-gray-400 capitalize">
+                  {user?.role}
+                </p>
               </div>
               <ChevronDown size={14} className="text-gray-400 ml-0.5" />
             </button>
@@ -221,9 +240,12 @@ export default function AdminHeader() {
               <div className="absolute right-0 top-11 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-[9999] overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-100">
                   <p className="text-sm font-semibold text-gray-800">
-                    Samuel Admasu
+                    {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-400">samuel@edunova.edu</p>
+                  <p className="text-xs text-gray-400">{user?.email}</p>
+                  <p className="text-xs text-gray-400 capitalize mt-1">
+                    Role: {user?.role}
+                  </p>
                 </div>
                 <ul className="py-1">
                   <li className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors">
