@@ -1,18 +1,39 @@
 import React from "react";
 import { useAuth } from "../../../shared/utils";
 
-/**
- * TeacherDashboard - Main teacher dashboard page
- * Displays teacher-specific information and quick actions
- */
+const getInitials = (firstName, lastName) => {
+  let name=`${firstName} ${lastName}`;
+  if (!name) return "";
+
+  // List of titles to ignore
+  const titles = ["dr.", "mr.", "mrs.", "ms.", "prof.", "doc."];
+
+  const cleanWords = name
+    .trim()
+    .split(/\s+/)
+    .filter((word) => !titles.includes(word.toLowerCase())); // Removes titles
+
+  // Takes the first letter of the first and last remaining words
+  const firstInitial = cleanWords[0]?.[0] || "";
+  const lastInitial =
+    cleanWords.length > 1 ? cleanWords[cleanWords.length - 1][0] : "";
+
+  return (firstInitial + lastInitial).toUpperCase();
+};
 function TeacherDashboard() {
   const { user } = useAuth();
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container p-6 w-full ">
+      <div className="flex items-center gap-2 ">
+        <div className="flex items-center justify-center h-12 w-12 bg-indigo-500 text-white font-medium text-lg rounded-full ">
+          {getInitials(user?.firstName, user?.lastName)}
+        </div>
+
       <div className="dashboard-header">
         <h1>Welcome, {user?.firstName}! 👨‍🏫</h1>
         <p>Teacher Dashboard</p>
+      </div>
       </div>
 
       <div className="dashboard-content">
@@ -48,77 +69,6 @@ function TeacherDashboard() {
           <p>No recent activity to display.</p>
         </div>
       </div>
-
-      <style>{`
-        .dashboard-container {
-          padding: 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .dashboard-header {
-          margin-bottom: 30px;
-        }
-
-        .dashboard-header h1 {
-          font-size: 2rem;
-          color: #333;
-          margin: 0;
-        }
-
-        .dashboard-header p {
-          color: #666;
-          margin: 5px 0 0 0;
-        }
-
-        .dashboard-content {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 20px;
-        }
-
-        .info-card, .quick-actions, .recent-activity {
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .info-card h2, .quick-actions h2, .recent-activity h2 {
-          font-size: 1.3rem;
-          color: #333;
-          margin-top: 0;
-        }
-
-        .info-card p {
-          margin: 8px 0;
-          color: #555;
-        }
-
-        .action-buttons {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 15px;
-        }
-
-        .action-btn {
-          flex: 1;
-          min-width: 120px;
-          padding: 10px 15px;
-          background: #007bff;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.9rem;
-          transition: background 0.3s ease;
-        }
-
-        .action-btn:hover {
-          background: #0056b3;
-        }
-      `}</style>
     </div>
   );
 }

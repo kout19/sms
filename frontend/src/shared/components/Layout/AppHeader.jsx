@@ -10,8 +10,8 @@ import {
   Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { getRoleInfo } from "../utils/rbacUtils";
+import { useAuth } from "../../hooks/useAuth";
+import { getRoleInfo } from "../../utils/rbacUtils";
 
 const initialNotifications = [
   {
@@ -40,9 +40,9 @@ const initialNotifications = [
   },
 ];
 
-export default function AdminHeader() {
+export default function AppHeader() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const roleInfo = getRoleInfo(user?.role);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);
@@ -76,7 +76,6 @@ export default function AdminHeader() {
   };
 
   const handleNotifClick = (notif) => {
-    // Mark as read when opened
     setNotifications((prev) =>
       prev.map((n) => (n.id === notif.id ? { ...n, unread: false } : n)),
     );
@@ -86,27 +85,26 @@ export default function AdminHeader() {
 
   const handleViewAll = () => {
     setShowNotifs(false);
-    navigate("/admin/notifications");
+    navigate(`/${user?.role}/notifications`);
   };
 
   const handleLogout = () => {
-    alert("Logging out…");
+    logout();
+    navigate("/");
   };
 
   return (
     <>
       <header className="w-full h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
-        {/* Page Title */}
         <div>
           <h1 className="text-base font-semibold text-gray-900">Dashboard</h1>
           <p className="text-xs text-gray-400">
             Welcome back, {user?.firstName || "User"}
+            {roleInfo?.displayName ? ` · ${roleInfo.displayName}` : ""}
           </p>
         </div>
 
-        {/* Right side */}
         <div className="flex items-center gap-2">
-          {/* Notification Bell */}
           <div className="relative" ref={notifsRef}>
             <button
               onClick={() => {
@@ -124,7 +122,6 @@ export default function AdminHeader() {
               )}
             </button>
 
-            {/* Notifications Dropdown — fixed on mobile to escape sidebar clipping */}
             {showNotifs && (
               <div
                 className="
@@ -209,10 +206,8 @@ export default function AdminHeader() {
             )}
           </div>
 
-          {/* Divider */}
           <div className="w-px h-6 bg-gray-200 mx-1" />
 
-          {/* User Dropdown */}
           <div className="relative" ref={userRef}>
             <button
               onClick={() => {
@@ -230,7 +225,7 @@ export default function AdminHeader() {
                   {user?.firstName} {user?.lastName}
                 </p>
                 <p className="text-[11px] text-gray-400 capitalize">
-                  {user?.role}
+                  {roleInfo?.displayName || user?.role}
                 </p>
               </div>
               <ChevronDown size={14} className="text-gray-400 ml-0.5" />
@@ -244,7 +239,7 @@ export default function AdminHeader() {
                   </p>
                   <p className="text-xs text-gray-400">{user?.email}</p>
                   <p className="text-xs text-gray-400 capitalize mt-1">
-                    Role: {user?.role}
+                    Role: {roleInfo?.displayName || user?.role}
                   </p>
                 </div>
                 <ul className="py-1">
@@ -270,7 +265,6 @@ export default function AdminHeader() {
         </div>
       </header>
 
-      {/* Notification Detail Modal */}
       {selectedNotif && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
@@ -286,7 +280,14 @@ export default function AdminHeader() {
             >
               <X size={16} />
             </button>
-            <div className="text-3xl mb-3">{selectedNotif.icon}</div>
+            {(() => {
+              const NotifIcon = selectedNotif.icon;
+              return (
+                <div className="mb-3 text-indigo-600">
+                  <NotifIcon size={32} />
+                </div>
+              );
+            })()}
             <h2 className="text-base font-semibold text-gray-900 mb-1">
               {selectedNotif.title}
             </h2>

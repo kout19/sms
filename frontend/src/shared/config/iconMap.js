@@ -1,0 +1,61 @@
+import {
+  LayoutDashboard,
+  GraduationCap,
+  List,
+  Plus,
+  Download,
+  MapPin,
+  BookOpen,
+  Clock,
+  CalendarCheck,
+  TrendingUp,
+  BarChart3,
+  DollarSign,
+  Settings,
+  Wrench,
+  Shield,
+  Users,
+  Search,
+  Pencil,
+  Eye,
+  Megaphone,
+  MessageSquare,
+  ClipboardList,
+  Check,
+  FileText,
+  Home,
+} from "lucide-react";
+
+const iconMap = {
+  home: Home,
+  "layout-dashboard": LayoutDashboard,
+  "graduation-cap": GraduationCap,
+  list: List,
+  plus: Plus,
+  download: Download,
+  "map-pin": MapPin,
+  "book-open": BookOpen,
+  clock: Clock,
+  "calendar-check": CalendarCheck,
+  "trending-up": TrendingUp,
+  "bar-chart": BarChart3,
+  "dollar-sign": DollarSign,
+  settings: Settings,
+  wrench: Wrench,
+  shield: Shield,
+  users: Users,
+  search: Search,
+  pencil: Pencil,
+  eye: Eye,
+  megaphone: Megaphone,
+  "message-square": MessageSquare,
+  "clipboard-list": ClipboardList,
+  check: Check,
+  "file-text": FileText,
+};
+
+export const getIcon = (iconKey) => {
+  return iconMap[iconKey] || LayoutDashboard;
+};
+
+export default iconMap;
