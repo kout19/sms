@@ -71,7 +71,7 @@ const RoleSwitcher = () => {
         ))}
       </div>
 
-      {user && (
+      {/* {user && (
         <div className="role-switcher-info">
           <p>
             <strong>ID:</strong> {user.id}
@@ -80,7 +80,7 @@ const RoleSwitcher = () => {
             <strong>Email:</strong> {user.email}
           </p>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
