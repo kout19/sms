@@ -2,16 +2,12 @@ import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "../../../shared/utils";
 import ParentLayout from "../layouts/ParentLayout";
 import ParentDashboard from "../pages/ParentDashboard";
+import ParentProgressPage from "../pages/ParentProgressPage";
+import ParentAnnouncementsPage from "../pages/ParentAnnouncementsPage";
+import ParentMessagesPage from "../pages/ParentMessagesPage";
+import ParentFeesPage from "../pages/ParentFeesPage";
+import ParentDocumentsPage from "../pages/ParentDocumentsPage";
 
-/**
- * Parent Routes - Protected routes for parent module
- * Only users with 'parent' role can access these routes
- *
- * Uses the reusable Layout component that handles:
- * - Header with user info
- * - Sidebar with parent-specific menu items
- * - Responsive behavior
- */
 const ParentRoutes = () => {
   return (
     <ProtectedRoute
@@ -20,9 +16,11 @@ const ParentRoutes = () => {
         <Routes>
           <Route path="/" element={<ParentLayout />}>
             <Route index element={<ParentDashboard />} />
-            {/* <Route path="child/:childId/progress" element={<ChildProgress />} />
-            <Route path="child/:childId/attendance" element={<Attendance />} />
-            <Route path="messages" element={<Messages />} /> */}
+            <Route path="progress" element={<ParentProgressPage />} />
+            <Route path="announcements" element={<ParentAnnouncementsPage />} />
+            <Route path="messages" element={<ParentMessagesPage />} />
+            <Route path="fees" element={<ParentFeesPage />} />
+            <Route path="documents" element={<ParentDocumentsPage />} />
           </Route>
         </Routes>
       }

@@ -2,16 +2,13 @@ import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "../../../shared/utils";
 import StudentLayout from "../layouts/StudentLayout";
 import StudentDashboard from "../pages/StudentDashboard";
+import StudentGradesPage from "../pages/StudentGradesPage";
+import StudentAttendancePage from "../pages/StudentAttendancePage";
+import StudentSchedulePage from "../pages/StudentSchedulePage";
+import StudentAssignmentsPage from "../pages/StudentAssignmentsPage";
+import StudentAnnouncementsPage from "../pages/StudentAnnouncementsPage";
+import StudentMessagesPage from "../pages/StudentMessagesPage";
 
-/**
- * Student Routes - Protected routes for student module
- * Only users with 'student' role can access these routes
- *
- * Uses the reusable Layout component that handles:
- * - Header with user info
- * - Sidebar with student-specific menu items
- * - Responsive behavior
- */
 const StudentRoutes = () => {
   return (
     <ProtectedRoute
@@ -20,9 +17,12 @@ const StudentRoutes = () => {
         <Routes>
           <Route path="/" element={<StudentLayout />}>
             <Route index element={<StudentDashboard />} />
-            {/* <Route path="grades" element={<Grades />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="schedule" element={<Schedule />} /> */}
+            <Route path="grades" element={<StudentGradesPage />} />
+            <Route path="attendance" element={<StudentAttendancePage />} />
+            <Route path="schedule" element={<StudentSchedulePage />} />
+            <Route path="assignments" element={<StudentAssignmentsPage />} />
+            <Route path="announcements" element={<StudentAnnouncementsPage />} />
+            <Route path="messages" element={<StudentMessagesPage />} />
           </Route>
         </Routes>
       }

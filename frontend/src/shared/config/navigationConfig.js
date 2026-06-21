@@ -207,20 +207,6 @@ export const navigationConfig = {
         icon: "book-open",
         path: "/teacher/classes",
         permission: "view:classes",
-        children: [
-          {
-            id: "classes-list",
-            label: "All Classes",
-            icon: "list",
-            path: "/teacher/classes",
-          },
-          {
-            id: "class-schedule",
-            label: "Schedule",
-            icon: "clock",
-            path: "/teacher/classes/schedule",
-          },
-        ],
       },
       {
         id: "students",
@@ -228,41 +214,13 @@ export const navigationConfig = {
         icon: "graduation-cap",
         path: "/teacher/students",
         permission: "view:students",
-        children: [
-          {
-            id: "students-list",
-            label: "Student List",
-            icon: "list",
-            path: "/teacher/students",
-          },
-          {
-            id: "students-search",
-            label: "Search Student",
-            icon: "search",
-            path: "/teacher/students/search",
-          },
-        ],
       },
       {
         id: "grades",
         label: "Grades",
-        icon: "layout-dashboard",
+        icon: "trending-up",
         path: "/teacher/grades",
         permission: "edit:grades",
-        children: [
-          {
-            id: "grades-enter",
-            label: "Enter Grades",
-            icon: "pencil",
-            path: "/teacher/grades/enter",
-          },
-          {
-            id: "grades-view",
-            label: "View Grades",
-            icon: "eye",
-            path: "/teacher/grades/view",
-          },
-        ],
       },
       {
         id: "attendance",
@@ -270,20 +228,6 @@ export const navigationConfig = {
         icon: "calendar-check",
         path: "/teacher/attendance",
         permission: "mark:attendance",
-        children: [
-          {
-            id: "attendance-mark",
-            label: "Mark Attendance",
-            icon: "map-pin",
-            path: "/teacher/attendance/mark",
-          },
-          {
-            id: "attendance-report",
-            label: "Attendance Report",
-            icon: "layout-dashboard",
-            path: "/teacher/attendance/report",
-          },
-        ],
       },
       {
         id: "announcements",
@@ -291,20 +235,6 @@ export const navigationConfig = {
         icon: "megaphone",
         path: "/teacher/announcements",
         permission: "post:announcements",
-        children: [
-          {
-            id: "announcements-list",
-            label: "All Announcements",
-            icon: "list",
-            path: "/teacher/announcements",
-          },
-          {
-            id: "announcements-create",
-            label: "Create New",
-            icon: "plus",
-            path: "/teacher/announcements/create",
-          },
-        ],
       },
       {
         id: "messages",
@@ -335,20 +265,6 @@ export const navigationConfig = {
         icon: "trending-up",
         path: "/student/grades",
         permission: "view:own_grades",
-        children: [
-          {
-            id: "grades-current",
-            label: "Current Grades",
-            icon: "layout-dashboard",
-            path: "/student/grades",
-          },
-          {
-            id: "grades-history",
-            label: "Grade History",
-            icon: "book-open",
-            path: "/student/grades/history",
-          },
-        ],
       },
       {
         id: "attendance",
@@ -369,20 +285,6 @@ export const navigationConfig = {
         label: "Assignments",
         icon: "clipboard-list",
         path: "/student/assignments",
-        children: [
-          {
-            id: "assignments-pending",
-            label: "Pending",
-            icon: "clock",
-            path: "/student/assignments",
-          },
-          {
-            id: "assignments-submitted",
-            label: "Submitted",
-            icon: "check",
-            path: "/student/assignments/submitted",
-          },
-        ],
       },
       {
         id: "announcements",
@@ -421,26 +323,6 @@ export const navigationConfig = {
         icon: "book-open",
         path: "/parent/progress",
         permission: "view:child_grades",
-        children: [
-          {
-            id: "child-grades",
-            label: "Grades",
-            icon: "trending-up",
-            path: "/parent/progress/grades",
-          },
-          {
-            id: "child-attendance",
-            label: "Attendance",
-            icon: "calendar-check",
-            path: "/parent/progress/attendance",
-          },
-          {
-            id: "child-schedule",
-            label: "Schedule",
-            icon: "clock",
-            path: "/parent/progress/schedule",
-          },
-        ],
       },
       {
         id: "announcements",

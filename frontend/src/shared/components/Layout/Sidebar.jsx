@@ -57,9 +57,12 @@ const Sidebar = () => {
         : "text-indigo-600 hover:bg-indigo-100"
     }`;
 
+  const useNestedNav = user?.role === "admin";
+
   const renderMenuItem = (item, level = 0) => {
     const Icon = getIcon(item.icon);
-    const hasChildren = item.children && item.children.length > 0;
+    const hasChildren =
+      useNestedNav && item.children && item.children.length > 0;
     const isActive = isPathActive(item.path);
     const isExpanded = expandedItems[item.id];
     const childActive = hasActiveChild(item);
