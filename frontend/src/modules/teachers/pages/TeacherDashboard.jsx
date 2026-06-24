@@ -35,6 +35,8 @@ const classPerformanceData = [
   {name:"10-C", score:90, color: "bg-indigo-600"}
 ]
 
+// Function component starts here
+
 function TeacherDashboard() {
   const { user } = useAuth();
   const getFullName=(firstName, lastName)=>{
