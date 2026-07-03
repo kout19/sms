@@ -1,8 +1,11 @@
 import React from "react";
 import { useAuth } from "../../../shared/utils";
 import { dateFromatter } from "../../../shared/utils/dateFromatter";
-import {AssesmentTracker} from "../studentsCard/StudentsCard"
-import {Star, Calendar, BookMarked,TrendingUp} from 'lucide-react'
+import {AssesmentTracker, TodaysClasses} from "../studentsCard/StudentsCard"
+import { Star, Calendar, BookMarked, TrendingUp, Clock } from 'lucide-react'
+import { GpaTrend } from "../components/GpaTrend"
+import { PerformanceRadar } from "../components/PerformanceRadar"
+import {UpcomingEvents} from "../components/UpcomingEvents"
 
 /**
  * StudentDashboard - Main student dashboard page
@@ -10,10 +13,10 @@ import {Star, Calendar, BookMarked,TrendingUp} from 'lucide-react'
  */
 
 const assesmentData = [
-  { icon: Star, iconBgColor:"blue-600", number: 3.9, typesOfInfo: "Current GPA", description: "Top 5% in class" },
-  { icon: Calendar,iconBgColor:"red-600", number: 3, typesOfInfo: "Assignment Due", description: "This week" },
-  { icon: BookMarked,iconBgColor:"yellow-600", number: 4, typesOfInfo: "Classes Today", description: "Starting at 9:00 AM" },
-  {icon:TrendingUp,iconBgColor:"green-600", number:12, typesOfInfo:"Overal Rank",description:"Out of 185 students"}
+  { icon: Star, iconBgColor:"blue", number: 3.9, typesOfInfo: "Current GPA", description: "Top 5% in class" },
+  { icon: Calendar,iconBgColor:"red", number: 3, typesOfInfo: "Assignment Due", description: "This week" },
+  { icon: BookMarked,iconBgColor:"yellow", number: 4, typesOfInfo: "Classes Today", description: "Starting at 9:00 AM" },
+  {icon:TrendingUp,iconBgColor:"green", number:12, typesOfInfo:"Overal Rank",description:"Out of 185 students"}
 ]
 
 const gradeData = [
@@ -23,6 +26,43 @@ const gradeData = [
   {course:"History", teacher:"Mr. Rebert Tylor", score:94, grade:"A"},
   {course:"Chemistry", teacher:"Dr. Lisa Chen", score:70, grade:"B"},
 ]
+// classes Data
+const classesData = [
+  {
+    id: 1,
+    time: "9:00 AM",
+    subject: "Mathematics",
+    room: "Room 201",
+    teacher: "Dr. Williams",
+    // We map semantic keys to tailwind color configurations
+    color: "purple", 
+    icon:Clock
+  },
+  {
+    id: 2,
+    time: "10:30 AM",
+    subject: "English Literature",
+    room: "Room 105",
+    teacher: "Mr. Anderson",
+    color: "blue",
+  },
+  {
+    id: 3,
+    time: "1:00 PM",
+    subject: "Physics Lab",
+    room: "Lab 301",
+    teacher: "Ms. Garcia",
+    color: "amber",
+  },
+  {
+    id: 4,
+    time: "2:30 PM",
+    subject: "History",
+    room: "Room 108",
+    teacher: "Mr. Taylor",
+    color: "emerald",
+  },
+];
 // Functionl component starts here
 
 function StudentDashboard() {  
@@ -110,14 +150,11 @@ function StudentDashboard() {
       {/* #result related cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 md:gap-4 mt-6">
         {assesmentData && assesmentData.length > 0 ? (
-          assesmentData.map((ass, index) => (
+          assesmentData.map((ass) => (
             <AssesmentTracker
-              key = { index }
+              key = { ass.typesOfInfo }
               icon={ass.icon}
-              iconBgColor={ass.iconBgColor}
-              number={ass.number}
-              typesOfInfo={ass.typesOfInfo}
-              description={ass.description}
+              {...ass}
             />
         ))
           
@@ -125,48 +162,63 @@ function StudentDashboard() {
         <p>Assesment data not found</p>
         )}
       </div>
-      {/* Grade card */}
-      <div className="mt-6 mb-4">
-        <div className="border border-slate-200 rounded-3xl p-6 max-w-md ">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-sm font-bold">My Grades</h1>
-          <p className="text-green-600 text-xs">Overall: 88.2%</p>
-          </div>
-          {gradeData && gradeData.length > 0 ? (
-            gradeData.map((grade) => {
-              const { bg_color, grade_value } = getScore(grade.score)
-          return(
-              <div className="">
-            <div className="flex items-center  justify-between mb-3">
-            <div>
-                    <h1 className="text-xs font-bold">{grade.course}</h1>
-                    <span className="text-xs text-slate-600 ">{grade.teacher}</span>
-            </div>
-            <div className="flex items-center gap-3">
-                    <p className="text-xs text-slate-700">{grade.score}%</p>
-            <div className="w-7 h-7 bg-indigo-200 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-indigo-600 font-bold">{grade_value}</span>
-              </div>
-              </div>
-            </div>
-            
-            
-            <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden mb-3">
-              <div className={`h-full rounded-full transition-all duration-500 ${bg_color}`}
-                style={{width: `${grade.score}%`}} 
+     {/* 1. Parent Wrapper: Flex column on mobile, changes to Row layout at md breakpoint */}
+<div className="flex flex-col md:flex-row md:items-start gap-6 p-4 w-full max-w-6xl">
+  
+  {/* 2. Grade Card Wrapper Element */}
+  <div className="flex-1 w-full max-w-md bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm">
+    <div className="flex items-center justify-between mb-6">
+      <h1 className="text-base font-bold text-slate-900">My Grades</h1>
+      <p className="text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded-full">
+        Overall: 88.2%
+      </p>
+    </div>
 
-              />
+    {gradeData && gradeData.length > 0 ? (
+      <div className="space-y-4">
+        {gradeData.map((grade) => {
+          const { bg_color, grade_value } = getScore(grade.score);
+
+          return (
+            <div key={grade.course} className="group">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-left"> {/* Force clean explicit left alignment */}
+                  <h1 className="text-sm font-bold text-slate-800">{grade.course}</h1>
+                  <span className="text-xs text-slate-400 font-medium">{grade.teacher}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs font-semibold text-slate-600">{grade.score}%</p>
+                  <div className="w-7 h-7 bg-indigo-50 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-indigo-600 font-bold">{grade_value}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${bg_color}`}
+                  style={{ width: `${grade.score}%` }} 
+                />
+              </div>
             </div>
-          </div>
-            )
-            
-})
-            
-          ): (
-              <p>Grade data not found at all</p>
-          )}
-          
-        </div>
+          );
+        })}
+      </div>
+    ) : (
+      <p className="text-sm text-slate-400 text-center py-4">Grade data not found at all</p>
+    )}
+  </div>
+
+  {/* 3. Today's Classes Card Wrapper Element */}
+  <div className="flex-1 w-full max-w-md">
+    <TodaysClasses classes={classesData} />
+  </div>
+
+</div>
+      <div className="flex flex-col md:flex-row md:items-start gap-6 p-4 w-full max-w-6xl">
+        <GpaTrend />
+        <PerformanceRadar />
+        <UpcomingEvents />
       </div>
     </div>
   );
