@@ -16,7 +16,6 @@ import {AttendanceTrend} from "../components/AttendanceTrading"
 function ParentDashboard() {
   const { user } = useAuth();
 
-
   return (
     <div className="dashboard-container p-6 w-full bg-gray-50 ">
       <div className="flex items-center gap-2 ">
