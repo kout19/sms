@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, GraduationCap, ChevronDown } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../../modules/auth/hooks/useAuth";
 import { usePermission } from "../../hooks/usePermission";
 import { getNavigationForRole } from "../../config/navigationConfig";
 import { getIcon } from "../../config/iconMap";
@@ -45,8 +45,7 @@ const Sidebar = () => {
     if (!item.children) return false;
     return item.children.some(
       (child) =>
-        isPathActive(child.path) ||
-        (child.children && hasActiveChild(child)),
+        isPathActive(child.path) || (child.children && hasActiveChild(child)),
     );
   };
 

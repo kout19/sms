@@ -1,32 +1,50 @@
 import "./App.css";
 import "./index.css";
-import Landingpages from "./modules/public/pages/Landingpages";
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Landingpages from "./modules/public/pages/Landingpages";
+
+// Auth
+import AuthLayout from "./modules/auth/layouts/AuthLayout";
+import Login from "./modules/auth/pages/Login";
+import ForgotPassword from "./modules/auth/pages/ForgotPassword";
+import ResetPassword from "./modules/auth/pages/ResetPassword";
+import Unauthorized from "./modules/auth/pages/Unauthorized";
+import NotFound from "./modules/auth/pages/NotFound";
+
+// Feature Routes
 import AdminRoutes from "./modules/admin/routes/AdminRoutes";
 import TeacherRoutes from "./modules/teachers/routes/TeacherRoutes";
 import StudentRoutes from "./modules/students/routes/StudentRoutes";
 import ParentRoutes from "./modules/parents/routes/ParentRoutes";
-import AuthRoutes from "./modules/auth/routes/AuthRoutes";
-import NotFound from "./modules/auth/pages/NotFound";
 
 function App() {
   return (
-    <div className="app">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landingpages />} />
+    <BrowserRouter>
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<Landingpages />} />
 
-          <Route path="/*" element={<AuthRoutes />} />
+        {/* Authentication */}
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+        </Route>
 
-          <Route path="/admin/*" element={<AdminRoutes />} />
-          <Route path="/teacher/*" element={<TeacherRoutes />} />
-          <Route path="/student/*" element={<StudentRoutes />} />
-          <Route path="/parent/*" element={<ParentRoutes />} />
+        {/* Dashboards */}
+        <Route path="/admin/*" element={<AdminRoutes />} />
+        <Route path="/super-admin/*" element={<AdminRoutes />} />
+        <Route path="/teacher/*" element={<TeacherRoutes />} />
+        <Route path="/student/*" element={<StudentRoutes />} />
+        <Route path="/parent/*" element={<ParentRoutes />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

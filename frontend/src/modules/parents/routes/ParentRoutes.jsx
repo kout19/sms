@@ -11,7 +11,7 @@ import ParentDocumentsPage from "../pages/ParentDocumentsPage";
 const ParentRoutes = () => {
   return (
     <ProtectedRoute
-      allowedRoles={["parent"]}
+      allowedRoles={["parent", "super-admin"]}
       element={
         <Routes>
           <Route path="/" element={<ParentLayout />}>

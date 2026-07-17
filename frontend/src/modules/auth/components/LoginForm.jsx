@@ -70,7 +70,9 @@ const LoginForm = () => {
             {...register("email")}
           />
           {errors.email && (
-            <p className="mt-1.5 text-xs text-red-600">{errors.email.message}</p>
+            <p className="mt-1.5 text-xs text-red-600">
+              {errors.email.message}
+            </p>
           )}
         </div>
 
@@ -81,7 +83,13 @@ const LoginForm = () => {
           registration={register("password")}
         />
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => navigate("/")}
+            className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
+          >
+            ← Back to Home
+          </button>
           <Link
             to="/forgot-password"
             className="text-sm font-medium text-blue-700 hover:text-blue-800"

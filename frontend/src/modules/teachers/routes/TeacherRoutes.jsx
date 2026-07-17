@@ -12,7 +12,7 @@ import TeacherMessagesPage from "../pages/TeacherMessagesPage";
 const TeacherRoutes = () => {
   return (
     <ProtectedRoute
-      allowedRoles={["teacher"]}
+      allowedRoles={["teacher", "super-admin"]}
       element={
         <Routes>
           <Route path="/" element={<TeacherLayout />}>
@@ -21,7 +21,10 @@ const TeacherRoutes = () => {
             <Route path="students" element={<TeacherStudentsPage />} />
             <Route path="grades" element={<TeacherGradesPage />} />
             <Route path="attendance" element={<TeacherAttendancePage />} />
-            <Route path="announcements" element={<TeacherAnnouncementsPage />} />
+            <Route
+              path="announcements"
+              element={<TeacherAnnouncementsPage />}
+            />
             <Route path="messages" element={<TeacherMessagesPage />} />
           </Route>
         </Routes>

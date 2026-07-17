@@ -14,9 +14,8 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {useAuth} from "../../hooks/useAuth";
+import { useAuth } from "../../../modules/auth/hooks/useAuth";
 import { getRoleInfo } from "../../utils/rbacUtils";
-
 
 const Header = ({ onMenuToggle }) => {
   const navigate = useNavigate();

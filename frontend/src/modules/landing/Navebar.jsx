@@ -1,11 +1,13 @@
-import {useState} from "react";
+import { useState } from "react";
 import { GraduationCap, Menu, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Navebar = () => {
-  const [isMenuOpen, setIsMenuOpen] =useState(false);
-    const toggleMenu= () =>{
-      setIsMenuOpen(!isMenuOpen)
-    }
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
   return (
     <header className="bg-white w-full sticky top-0 z-50 border-b border-slate-300">
       <div className=" max-w-7xl mx-auto  px-6  h-16 flex items-center justify-between  ">
@@ -41,7 +43,10 @@ const Navebar = () => {
         </nav>
         {/* Sign in button */}
         <div className="hidden md:block">
-          <button className="cursor-pointer text-indigo-600 font-semibold hover:text-indigo-600 transition-colors text-sm">
+          <button
+            onClick={() => navigate("/login")}
+            className="cursor-pointer text-indigo-600 font-semibold hover:text-indigo-600 transition-colors text-sm"
+          >
             Sign In
           </button>
         </div>
@@ -62,24 +67,30 @@ const Navebar = () => {
             <a
               href="#features"
               className=""
-              onclick={() => setIsMenuOpen(false)}
+              onClick={() => setIsMenuOpen(false)}
               className="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors"
             >
               Features
             </a>
-            <a href="#solutions"
-            onclick= {() => setIsMenuOpen(false)}
-          className="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors">
+            <a
+              href="#solutions"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors"
+            >
               Solutions
-              </a>      
-            <a href ="#Pricing"
-            onclick= {() => setIsMenuOpen(false)}
-            className="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors">
+            </a>
+            <a
+              href="#Pricing"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors"
+            >
               Pricing
-              </a>     
+            </a>
           </nav>
           <div className="border-1 border-indigo-600 rounded-md p-2 flex justify-center flex-col gap-4">
-            <button className="cursor-pointer text-indigo-600  hover:text-indigo-600 transition-colors text-sm font-bold">
+            <button 
+            onClick={() => navigate("/login")}
+            className="cursor-pointer text-indigo-600  hover:text-indigo-600 transition-colors text-sm font-bold">
               Sign In
             </button>
           </div>

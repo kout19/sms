@@ -16,7 +16,7 @@ import { ProtectedRoute } from "../../../shared/utils";
 const AdminRoutes = () => {
   return (
     <ProtectedRoute
-      allowedRoles={["admin"]}
+      allowedRoles={["admin", "super-admin"]}
       element={
         <Routes>
           <Route path="/" element={<AdminLayout />}>
