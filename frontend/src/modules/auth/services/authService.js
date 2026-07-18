@@ -1,36 +1,26 @@
-/**
- * Authentication Service
- * Placeholder async functions ready for Express + JWT + MongoDB backend integration.
- */
+import api from "../../../shared/api/axios";
 
-const NOT_CONNECTED_MESSAGE =
-  "Authentication service is not connected yet. Configure the backend API integration.";
-
-export const login = async (_credentials) => {
-  return Promise.reject(new Error(NOT_CONNECTED_MESSAGE));
+export const login = async (credentials) => {
+  const response = await api.post("/auth/login", credentials);
+  return response.data;
 };
 
 export const logout = async () => {
-  return Promise.resolve({
-    success: true,
-    message: "Logged out successfully.",
-  });
+  const response = await api.post("/auth/logout");
+  return response.data;
 };
 
-export const forgotPassword = async (_email) => {
-  return Promise.resolve({
-    success: true,
-    message: "Password reset request prepared for backend integration.",
-  });
+export const refreshToken = async () => {
+  const response = await api.post("/auth/refresh-token");
+  return response.data;
 };
 
-export const resetPassword = async (_payload) => {
-  return Promise.resolve({
-    success: true,
-    message: "Password reset request prepared for backend integration.",
-  });
+export const forgotPassword = async (email) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
 };
 
-export const refreshToken = async (_token) => {
-  return Promise.reject(new Error(NOT_CONNECTED_MESSAGE));
+export const resetPassword = async (payload) => {
+  const response = await api.post("/auth/reset-password", payload);
+  return response.data;
 };

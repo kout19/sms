@@ -1,35 +1,35 @@
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
+const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
-// route imports (feature-based)
-// const studentRoutes = require('./features/student/student.routes');
-// const teacherRoutes = require('./features/teacher/teacher.routes');
-// // ...more feature routes as you build them
-
-// const errorHandler = require('./middlewares/errorHandler');
-// const notFound = require('./middlewares/notFound');
+const authRoutes = require("./modules/auth/auth.routes");
+const notFound = require("./middlewares/notFound");
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
 // ---- Global Middleware ----
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || true,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
 }
 
 // ---- Routes ----
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
-
-// app.use('/api/students', studentRoutes);
-// app.use('/api/teachers', teacherRoutes);
-// ...
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+app.use("/api/v1/auth", authRoutes);
 
 // ---- Error Handling (always last) ----
-// app.use(notFound);
-// app.use(errorHandler);
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;

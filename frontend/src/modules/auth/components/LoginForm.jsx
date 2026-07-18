@@ -10,8 +10,13 @@ import PasswordInput from "./PasswordInput";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const { loginStart, loginSuccess, loginFailure, loading, error, clearError } =
-    useAuth();
+  const { 
+    loginStart,
+     loginSuccess,
+     loginFailure, 
+     loading, 
+     error, 
+     clearError } =  useAuth();
 
   const {
     register,
@@ -30,9 +35,14 @@ const LoginForm = () => {
     loginStart();
 
     try {
-      const response = await loginService(data);
-      loginSuccess(response);
-      navigate(getRoleDashboardPath(response.role), { replace: true });
+      const {accessToken, user} = await loginService(data);
+      loginSuccess(
+        {accessToken,
+           user}
+          );
+
+      navigate(getRoleDashboardPath(user.role),
+       { replace: true });
     } catch (err) {
       loginFailure(err?.message || "Login failed. Please try again.");
     }

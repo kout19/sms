@@ -3,11 +3,27 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   user: null,
   accessToken: null,
-  refreshToken: null,
   role: null,
   isAuthenticated: false,
   loading: false,
+  bootstrapping: false,
+  bootstrapped: false,
   error: null,
+};
+
+const normalizeUser = (user = null) => {
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user._id || user.id,
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    email: user.email || "",
+    role: user.role,
+    isActive: user.isActive ?? true,
+  };
 };
 
 const authSlice = createSlice({
@@ -19,17 +35,26 @@ const authSlice = createSlice({
       state.error = null;
     },
 
-    loginSuccess(state, action) {
-      const { id, firstName, lastName, email, role, accessToken, refreshToken } =
-        action.payload;
+    beginAuthBootstrap(state) {
+      state.bootstrapping = true;
+      state.error = null;
+    },
 
-      state.user = { id, firstName, lastName, email, role };
+    completeAuthBootstrap(state) {
+      state.bootstrapping = false;
+      state.bootstrapped = true;
+    },
+
+    loginSuccess(state, action) {
+      const { user, accessToken } = action.payload;
+
+      state.user = normalizeUser(user);
       state.accessToken = accessToken;
-      state.refreshToken = refreshToken;
-      state.role = role;
-      state.isAuthenticated = true;
+      state.role = user?.role || state.role;
+      state.isAuthenticated = Boolean(accessToken && state.user);
       state.loading = false;
       state.error = null;
+      state.bootstrapped = true;
     },
 
     loginFailure(state, action) {
@@ -38,18 +63,19 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.user = null;
       state.accessToken = null;
-      state.refreshToken = null;
       state.role = null;
+      state.bootstrapped = true;
     },
 
     logout(state) {
       state.user = null;
       state.accessToken = null;
-      state.refreshToken = null;
       state.role = null;
       state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
+      state.bootstrapping = false;
+      state.bootstrapped = true;
     },
 
     clearError(state) {
@@ -69,6 +95,8 @@ const authSlice = createSlice({
 
 export const {
   loginStart,
+  beginAuthBootstrap,
+  completeAuthBootstrap,
   loginSuccess,
   loginFailure,
   logout,
