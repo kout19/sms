@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { getPrisma, disconnectDB } = require("../infrastructure/prisma");
+const prisma = require("../config/prisma");
 const { hashPassword } = require("../modules/users/user.helpers");
 
 const DEMO_SCHOOL_ID = "11111111-1111-1111-1111-111111111111";
@@ -42,13 +42,21 @@ const seedUsers = [
     role: "parent",
     schoolId: DEMO_SCHOOL_ID,
   },
+  {
+    id: "66666666-6666-6666-6666-666666666666",
+    firstName: "Demo",
+    lastName: "Student",
+    email: process.env.SEED_STUDENT_EMAIL || "student@demo.com",
+    password: process.env.SEED_STUDENT_PASSWORD || "Student123!",
+    role: "student",
+    schoolId: DEMO_SCHOOL_ID,
+  }
 ];
 
 async function main() {
-  const prisma = getPrisma();
   console.log("Seeding PostgreSQL database...");
 
-  const school = await prisma.school.upsert({
+  await prisma.school.upsert({
     where: { id: DEMO_SCHOOL_ID },
     update: {},
     create: {
@@ -58,8 +66,6 @@ async function main() {
       isActive: true,
     },
   });
-
-  console.log(`School created: ${school.name}`);
 
   for (const userData of seedUsers) {
     const passwordHash = await hashPassword(userData.password);
@@ -92,5 +98,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await disconnectDB();
+    await prisma.$disconnect();
   });

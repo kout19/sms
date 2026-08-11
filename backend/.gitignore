@@ -18,3 +18,5 @@ coverage/
 .claude
 .windsurf
 
+
+/generated/prisma

@@ -1,4 +1,4 @@
-const { connectDB, disconnectDB } = require("../infrastructure/prisma");
+const { connectDB, disconnectDB } = require("../config/database");
 
 module.exports = connectDB;
 module.exports.connectDB = connectDB;

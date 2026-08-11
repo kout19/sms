@@ -1,8 +1,11 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('super_admin', 'admin', 'teacher', 'student', 'parent');
+CREATE TYPE "public"."UserRole" AS ENUM ('super_admin', 'admin', 'teacher', 'student', 'parent');
 
 -- CreateTable
-CREATE TABLE "schools" (
+CREATE TABLE "public"."schools" (
     "id" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT,
@@ -14,14 +17,14 @@ CREATE TABLE "schools" (
 );
 
 -- CreateTable
-CREATE TABLE "users" (
+CREATE TABLE "public"."users" (
     "id" UUID NOT NULL,
     "schoolId" UUID,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
-    "role" "UserRole" NOT NULL,
+    "role" "public"."UserRole" NOT NULL,
     "phone" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
@@ -35,25 +38,32 @@ CREATE TABLE "users" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "schools_slug_key" ON "schools"("slug");
+CREATE INDEX "schools_isActive_idx" ON "public"."schools"("isActive" ASC);
 
 -- CreateIndex
-CREATE INDEX "schools_isActive_idx" ON "schools"("isActive");
+CREATE UNIQUE INDEX "schools_slug_key" ON "public"."schools"("slug" ASC);
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE INDEX "idx_users_role" ON "public"."users"("role" ASC);
 
 -- CreateIndex
-CREATE INDEX "users_schoolId_idx" ON "users"("schoolId");
+CREATE INDEX "idx_users_school_id" ON "public"."users"("schoolId" ASC);
 
 -- CreateIndex
-CREATE INDEX "users_schoolId_role_idx" ON "users"("schoolId", "role");
+CREATE INDEX "users_createdAt_idx" ON "public"."users"("createdAt" ASC);
 
 -- CreateIndex
-CREATE INDEX "users_role_idx" ON "users"("role");
+CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email" ASC);
 
 -- CreateIndex
-CREATE INDEX "users_createdAt_idx" ON "users"("createdAt");
+CREATE INDEX "users_role_idx" ON "public"."users"("role" ASC);
+
+-- CreateIndex
+CREATE INDEX "users_schoolId_idx" ON "public"."users"("schoolId" ASC);
+
+-- CreateIndex
+CREATE INDEX "users_schoolId_role_idx" ON "public"."users"("schoolId" ASC, "role" ASC);
 
 -- AddForeignKey
-ALTER TABLE "users" ADD CONSTRAINT "users_schoolId_fkey" FOREIGN KEY ("schoolId") REFERENCES "schools"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."users" ADD CONSTRAINT "users_schoolId_fkey" FOREIGN KEY ("schoolId") REFERENCES "public"."schools"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

@@ -32,6 +32,7 @@ const logoutController = asyncHandler(async (req, res) => {
 
 const refreshTokenController = asyncHandler(async (req, res) => {
   const refreshTokenValue = req.cookies?.refreshToken;
+  console.log(refreshTokenValue);
   const { accessToken, user } = await refreshToken(refreshTokenValue);
 
   return res.status(200).json({

@@ -1,25 +1,30 @@
-const { getPrisma } = require("../../infrastructure/prisma");
-const { PUBLIC_USER_SELECT } = require("./user.helpers");
+const prisma = require("../../config/prisma");
 
-const prisma = () => getPrisma();
-
-const findByEmailWithPassword = async (email) =>
-  prisma().user.findUnique({
-    where: { email },
+const findByEmailWithPassword = async (email) => {
+  return prisma.user.findFirst({
+    where: {
+      email: {
+        equals: email,
+        mode: "insensitive",
+      },
+    },
   });
+};
 
-const findById = async (id) =>
-  prisma().user.findUnique({
+const findById = async (id) => {
+  return prisma.user.findUnique({
     where: { id },
-    select: PUBLIC_USER_SELECT,
   });
+};
 
-const updateLastLogin = async (id) =>
-  prisma().user.update({
+const updateLastLogin = async (id) => {
+  return prisma.user.update({
     where: { id },
-    data: { lastLogin: new Date() },
-    select: PUBLIC_USER_SELECT,
+    data: {
+      lastLogin: new Date(),
+    },
   });
+};
 
 module.exports = {
   findByEmailWithPassword,
