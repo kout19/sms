@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-const User = require("../modules/users/user.model");
+const userRepository = require("../modules/users/user.repository");
+const { toSafeUser } = require("../modules/users/user.helpers");
 const AppError = require("../utils/AppError");
 const { verifyAccessToken } = require("../config/jwt");
 
@@ -25,7 +26,7 @@ const authenticate = async (req, res, next) => {
       return next(new AppError("Invalid access token", 401));
     }
 
-    const user = await User.findById(payload.sub).select("-password");
+    const user = await userRepository.findById(payload.sub);
 
     if (!user) {
       return next(new AppError("Authenticated user not found", 401));
@@ -35,7 +36,7 @@ const authenticate = async (req, res, next) => {
       return next(new AppError("User account is inactive", 403));
     }
 
-    req.user = user;
+    req.user = toSafeUser(user);
     next();
   } catch (error) {
     next(error);

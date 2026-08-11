@@ -13,3 +13,8 @@ yarn-debug.log*
 dist/
 build/
 coverage/
+/generated/prisma
+
+.claude
+.windsurf
+

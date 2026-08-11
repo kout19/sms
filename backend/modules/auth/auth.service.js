@@ -1,4 +1,5 @@
-const User = require("../users/user.model");
+const userRepository = require("../users/user.repository");
+const { comparePassword, toSafeUser } = require("../users/user.helpers");
 const AppError = require("../../utils/AppError");
 const {
   generateAccessToken,
@@ -11,15 +12,13 @@ const login = async ({ email, password }) => {
   const normalizedEmail = String(email || "")
     .trim()
     .toLowerCase();
-  const user = await User.findOne({ email: normalizedEmail }).select(
-    "+password",
-  );
+  const user = await userRepository.findByEmailWithPassword(normalizedEmail);
 
   if (!user) {
     throw new AppError("Invalid email or password", 401);
   }
 
-  const isPasswordValid = await user.comparePassword(password);
+  const isPasswordValid = await comparePassword(password, user.passwordHash);
 
   if (!isPasswordValid) {
     throw new AppError("Invalid email or password", 401);
@@ -30,22 +29,21 @@ const login = async ({ email, password }) => {
   }
 
   const accessToken = generateAccessToken({
-    sub: user._id,
+    sub: user.id,
     role: user.role,
   });
 
   const refreshToken = generateRefreshToken({
-    sub: user._id,
+    sub: user.id,
     role: user.role,
   });
 
-  user.lastLogin = new Date();
-  await user.save();
+  const updatedUser = await userRepository.updateLastLogin(user.id);
 
   return {
     accessToken,
     refreshToken,
-    user: user.toSafeObject(),
+    user: toSafeUser(updatedUser),
   };
 };
 
@@ -62,20 +60,20 @@ const refreshToken = async (refreshTokenValue) => {
     throw new AppError("Invalid or expired refresh token", 401);
   }
 
-  const user = await User.findById(payload.sub).select("-password");
+  const user = await userRepository.findById(payload.sub);
 
   if (!user || !user.isActive) {
     throw new AppError("User is not authorized", 401);
   }
 
   const accessToken = generateAccessToken({
-    sub: user._id,
+    sub: user.id,
     role: user.role,
   });
 
   return {
     accessToken,
-    user: user.toSafeObject(),
+    user: toSafeUser(user),
   };
 };
 

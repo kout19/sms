@@ -1,75 +1,96 @@
-// seed.js
-const mongoose = require("mongoose");
-const User = require("../modules/users/user.model") // Adjust this path to your actual User model file
-const dotenv = require("dotenv");
+require("dotenv").config();
 
-dotenv.config();
+const { getPrisma, disconnectDB } = require("../infrastructure/prisma");
+const { hashPassword } = require("../modules/users/user.helpers");
 
-const sampleUsers = [
+const DEMO_SCHOOL_ID = "11111111-1111-1111-1111-111111111111";
+
+const seedUsers = [
   {
-    firstName: "Sarah",
+    id: "22222222-2222-2222-2222-222222222222",
+    firstName: "Super",
     lastName: "Admin",
-    email: "admin@school.com",
-    password: "Admin123!", // This will be automatically hashed by your pre-save hook
+    email: process.env.SEED_SUPER_ADMIN_EMAIL || "superadmin@demo.com",
+    password: process.env.SEED_SUPER_ADMIN_PASSWORD || "SuperAdmin123!",
+    role: "super_admin",
+    schoolId: null,
+  },
+  {
+    id: "33333333-3333-3333-3333-333333333333",
+    firstName: "School",
+    lastName: "Admin",
+    email: process.env.SEED_ADMIN_EMAIL || "admin@demo.com",
+    password: process.env.SEED_ADMIN_PASSWORD || "Admin123!",
     role: "admin",
-    phone: "+1234567890",
-    isEmailVerified: true,
+    schoolId: DEMO_SCHOOL_ID,
   },
   {
-    firstName: "Alex",
+    id: "44444444-4444-4444-4444-444444444444",
+    firstName: "Demo",
     lastName: "Teacher",
-    email: "teacher@school.com",
-    password: "Teacher123!",
+    email: process.env.SEED_TEACHER_EMAIL || "teacher@demo.com",
+    password: process.env.SEED_TEACHER_PASSWORD || "Teacher123!",
     role: "teacher",
-    phone: "+1234567891",
-    isEmailVerified: true,
+    schoolId: DEMO_SCHOOL_ID,
   },
   {
-    firstName: "Emma",
-    lastName: "Student",
-    email: "emma@school.com",
-    password: "Student123!",
-    role: "student",
-    phone: null,
-    isEmailVerified: true,
-  },
-  {
-    firstName: "Robert",
+    id: "55555555-5555-5555-5555-555555555555",
+    firstName: "Demo",
     lastName: "Parent",
-    email: "parent@school.com",
-    password: "Parent123!",
+    email: process.env.SEED_PARENT_EMAIL || "parent@demo.com",
+    password: process.env.SEED_PARENT_PASSWORD || "Parent123!",
     role: "parent",
-    phone: "+1234567892",
-    isEmailVerified: true,
+    schoolId: DEMO_SCHOOL_ID,
   },
 ];
 
-async function seedDatabase() {
-  try {
-    // 1. Connect to your MongoDB Atlas cluster using your environment variable
-    const DB_URI =
-      process.env.MONGO_URI ||
-      "mongodb+srv://db_user:v7oWFDxxUcecjUjO@cluster0.wifga0j.mongodb.net/sms?retryWrites=true&w=majority"; // Fallback to local DB if env variable is not set
-    await mongoose.connect(DB_URI);
-    console.log("🔄 Connected to MongoDB Atlas...");
+async function main() {
+  const prisma = getPrisma();
+  console.log("Seeding PostgreSQL database...");
 
-    // 2. Clear out existing users to prevent duplicate key errors (optional but clean for dev)
-    await User.deleteMany({});
-    console.log("🧹 Cleared existing users from the collection.");
+  const school = await prisma.school.upsert({
+    where: { id: DEMO_SCHOOL_ID },
+    update: {},
+    create: {
+      id: DEMO_SCHOOL_ID,
+      name: "Demo International School",
+      slug: "demo-international-school",
+      isActive: true,
+    },
+  });
 
-    // 3. Insert the sample records
-    // We use .create() loop or array so that Mongoose triggers the pre-save password hashing hooks
-    await User.create(sampleUsers);
-    console.log("✅ Sample data successfully inserted into MongoDB Atlas!");
+  console.log(`School created: ${school.name}`);
 
-    // 4. Disconnect safely
-    await mongoose.disconnect();
-    console.log("🔌 Disconnected safely from database.");
-    process.exit(0);
-  } catch (error) {
-    console.error("❌ Error seeding database:", error);
-    process.exit(1);
+  for (const userData of seedUsers) {
+    const passwordHash = await hashPassword(userData.password);
+
+    await prisma.user.upsert({
+      where: { email: userData.email.toLowerCase() },
+      update: {},
+      create: {
+        id: userData.id,
+        schoolId: userData.schoolId,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email.toLowerCase(),
+        passwordHash,
+        role: userData.role,
+        isActive: true,
+        isEmailVerified: true,
+      },
+    });
+
+    console.log(`User created: ${userData.email}`);
   }
+
+  console.log("Seeding finished successfully.");
 }
 
-seedDatabase();
+main()
+  .catch((error) => {
+    console.error("Seeding failed:", error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await disconnectDB();
+  });
