@@ -18,6 +18,9 @@ import AdminRoutes from "./modules/admin/routes/AdminRoutes";
 import TeacherRoutes from "./modules/teachers/routes/TeacherRoutes";
 import StudentRoutes from "./modules/students/routes/StudentRoutes";
 import ParentRoutes from "./modules/parents/routes/ParentRoutes";
+import SuperAdminRoutes from "./modules/superAdmin/routes/SuperAdminRoutes";
+import AccountantRoutes from "./modules/accountant/routes/AccountantRoutes";
+import DepartmentHeadRoutes from "./modules/departmentHead/routes/DepartmentHeadRoutes";
 
 function App() {
   return (
@@ -36,10 +39,12 @@ function App() {
 
         {/* Dashboards */}
         <Route path="/admin/*" element={<AdminRoutes />} />
-        <Route path="/super-admin/*" element={<AdminRoutes />} />
         <Route path="/teacher/*" element={<TeacherRoutes />} />
         <Route path="/student/*" element={<StudentRoutes />} />
         <Route path="/parent/*" element={<ParentRoutes />} />
+        <Route path="/super-admin/*" element={<SuperAdminRoutes />} />
+        <Route path="/accountant/*" element={<AccountantRoutes />} />
+        <Route path="/department-head/*" element={<DepartmentHeadRoutes />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />

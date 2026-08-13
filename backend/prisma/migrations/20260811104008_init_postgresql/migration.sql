@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateEnum
-CREATE TYPE "public"."UserRole" AS ENUM ('super_admin', 'admin', 'teacher', 'student', 'parent');
+CREATE TYPE "public"."UserRole" AS ENUM ('super_admin', 'admin', 'teacher', 'student', 'parent','accountant','department_head');
 
 -- CreateTable
 CREATE TABLE "public"."schools" (

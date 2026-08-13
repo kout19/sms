@@ -7,12 +7,14 @@ import {
   CheckCheck,
   GraduationCap,
   Users,
+  Settings,
+  User,
   Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../modules/auth/hooks/useAuth";
 import { getRoleInfo } from "../../utils/rbacUtils";
-
+// import {Link} from "react-router-dom";
 const initialNotifications = [
   {
     id: 1,
@@ -43,6 +45,7 @@ const initialNotifications = [
 export default function AppHeader() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  
   const roleInfo = getRoleInfo(user?.role);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);
@@ -244,10 +247,21 @@ export default function AppHeader() {
                 </div>
                 <ul className="py-1">
                   <li className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors">
-                    <span className="text-base">👤</span> My Profile
+                    <button
+                      onClick={() => navigate("") }
+                      className="flex items-center gap-1 "
+                    >
+                      <User size={15} />
+                      <span className="text-xs">My Profile </span>
+                    </button>
                   </li>
+
                   <li className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors">
-                    <span className="text-base">⚙️</span> Settings
+                    <button onClick={()=>navigate("/settings")}
+                      className="flex items-center gap-1 ">
+                      <Settings size={15} />
+                      <span className="">Settings</span>
+                    </button>
                   </li>
                 </ul>
                 <div className="border-t border-gray-100 py-1">

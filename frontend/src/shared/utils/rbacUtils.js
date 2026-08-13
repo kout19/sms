@@ -3,7 +3,7 @@
  */
 
 export const rolePermissions = {
-  "super-admin": {
+  "super_admin": {
     displayName: "Super Admin",
     description: "Full platform access",
     permissions: ["all"],
@@ -67,7 +67,7 @@ export const rolePermissions = {
 export const hasPermission = (userRole, permission) => {
   if (!userRole || !permission) return false;
 
-  if (userRole === "super-admin" || userRole === "admin") return true;
+  if (userRole === "super_admin" || userRole === "admin") return true;
 
   const roleConfig = rolePermissions[userRole];
   if (!roleConfig) return false;
@@ -91,7 +91,7 @@ export const hasRole = (userRole, allowedRoles = []) => {
 };
 
 export const getRolePermissions = (role) => {
-  if (role === "super-admin" || role === "admin") return ["all"];
+  if (role === "super_admin" || role === "admin") return ["all"];
   const roleConfig = rolePermissions[role];
   return roleConfig ? roleConfig.permissions : [];
 };
@@ -107,7 +107,7 @@ export const isAuthorized = (user, allowedRoles = []) => {
 
 export const getAccessLevel = (userRole) => {
   const accessLevels = {
-    "super-admin": "all",
+    "super_admin": "all",
     admin: "all",
     teacher: "own",
     student: "own",
@@ -117,7 +117,7 @@ export const getAccessLevel = (userRole) => {
 };
 
 export const canAccessResource = (userRole, resourceOwnerId, userId) => {
-  if (userRole === "super-admin" || userRole === "admin") return true;
+  if (userRole === "super_admin" || userRole === "admin") return true;
   if (
     userRole === "student" ||
     userRole === "parent" ||

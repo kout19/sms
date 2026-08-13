@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+   url      = env("DATABASE_URL")
 }
 
 model School {
@@ -26,7 +27,7 @@ model User {
   lastName            String
   email               String    @unique
   passwordHash        String
-  role                UserRole
+  role                UserRole 
   phone               String?
   isActive            Boolean   @default(true)
   isEmailVerified     Boolean   @default(false)
@@ -52,4 +53,6 @@ enum UserRole {
   teacher
   student
   parent
+  department_head
+  accountant
 }

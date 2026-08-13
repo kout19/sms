@@ -76,6 +76,7 @@ const authSlice = createSlice({
       state.error = null;
       state.bootstrapping = false;
       state.bootstrapped = true;
+      state.refreshToken = null;
     },
 
     clearError(state) {

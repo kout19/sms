@@ -12,7 +12,7 @@ import TeacherMessagesPage from "../pages/TeacherMessagesPage";
 const TeacherRoutes = () => {
   return (
     <ProtectedRoute
-      allowedRoles={["teacher", "super-admin"]}
+      allowedRoles={["teacher"]}
       element={
         <Routes>
           <Route path="/" element={<TeacherLayout />}>

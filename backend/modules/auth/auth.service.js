@@ -1,5 +1,6 @@
 const userRepository = require("../users/user.repository");
 const { comparePassword, toSafeUser } = require("../users/user.helpers");
+const env = require("../../config/env");
 const AppError = require("../../utils/AppError");
 const {
   generateAccessToken,
@@ -78,7 +79,7 @@ const refreshToken = async (refreshTokenValue) => {
 };
 
 const logout = async (res) => {
-  res.clearCookie("refreshToken", cookieOptions);
+  res.clearCookie(env.cookie.name, cookieOptions);
 };
 
 module.exports = {

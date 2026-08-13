@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 import { refreshToken as refreshTokenService } from "../modules/auth/services/authService";
+
 import { setAxiosAuthToken } from "../shared/api/axios";
+
 import {
   loginSuccess,
   logout,
   beginAuthBootstrap,
   completeAuthBootstrap,
 } from "../store/authSlice";
+
 import {
   publishAuthEvent,
   subscribeToAuthEvents,
@@ -37,20 +41,33 @@ const toSafeUser = (user = {}) => ({
 
 const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
-  const authRef = useRef(auth);
-  const lastRefreshAtRef = useRef(0);
+
+  const { accessToken, user, isAuthenticated } = useSelector(
+    (state) => state.auth,
+  );
+
   const [isReady, setIsReady] = useState(false);
-  const bootstrapAttemptedRef = useRef(false);
 
-  useEffect(() => {
-    authRef.current = auth;
-  }, [auth]);
+  // Prevent duplicate bootstrap requests.
+  const bootstrapStartedRef = useRef(false);
 
+  // Prevent unnecessary refresh calls.
+  const lastRefreshAtRef = useRef(0);
+
+  // Prevent simultaneous refresh operations.
+  const refreshPromiseRef = useRef(null);
+
+  /**
+   * Restore the authentication session.
+   *
+   * Important:
+   * - Access token comes from Redux memory.
+   * - Refresh token comes automatically from HTTP-only cookie.
+   * - Nothing is stored in localStorage/sessionStorage.
+   */
   const synchronizeSession = useCallback(
     async ({ silent = false } = {}) => {
-      const { accessToken, user, isAuthenticated } = authRef.current;
-
+      // If Redux already has a valid session, don't call backend.
       if (isAuthenticated && accessToken && user) {
         if (!silent) {
           setIsReady(true);
@@ -59,57 +76,90 @@ const AuthProvider = ({ children }) => {
         return true;
       }
 
-      try {
-        dispatch(beginAuthBootstrap());
+      // Prevent multiple refresh requests.
+      if (refreshPromiseRef.current) {
+        return refreshPromiseRef.current;
+      }
 
-        const response = await refreshTokenService();
-        const payload = response?.data ?? response;
+      const refreshSession = async () => {
+        try {
+          dispatch(beginAuthBootstrap());
 
-        if (!payload?.success || !payload?.accessToken || !payload?.user) {
-          throw new Error("Authentication refresh failed.");
+          const response = await refreshTokenService();
+
+          const payload = response?.data ?? response;
+
+          if (!payload?.success || !payload?.accessToken || !payload?.user) {
+            throw new Error("Authentication session could not be restored.");
+          }
+
+          const normalizedUser = toSafeUser(payload.user);
+
+          // Store access token ONLY in memory.
+          setAxiosAuthToken(payload.accessToken);
+
+          dispatch(
+            loginSuccess({
+              accessToken: payload.accessToken,
+              user: normalizedUser,
+            }),
+          );
+
+          lastRefreshAtRef.current = Date.now();
+
+          return true;
+        } catch (error) {
+          // No valid refresh cookie/session.
+          setAxiosAuthToken(null);
+
+          dispatch(logout());
+
+          return false;
+        } finally {
+          dispatch(completeAuthBootstrap());
+
+          if (!silent) {
+            setIsReady(true);
+          }
         }
+      };
 
-        const normalizedUser = toSafeUser(payload.user);
-        setAxiosAuthToken(payload.accessToken);
-        dispatch(
-          loginSuccess({
-            accessToken: payload.accessToken,
-            user: normalizedUser,
-          }),
-        );
+      refreshPromiseRef.current = refreshSession();
 
-        publishAuthEvent({
-          type: "LOGIN_SYNC",
-          accessToken: payload.accessToken,
-          user: normalizedUser,
-        });
-
-        lastRefreshAtRef.current = Date.now();
-        return true;
-      } catch {
-        dispatch(logout());
-        publishAuthEvent({ type: "LOGOUT_SYNC" });
-        return false;
+      try {
+        return await refreshPromiseRef.current;
       } finally {
-        dispatch(completeAuthBootstrap());
-        setIsReady(true);
+        refreshPromiseRef.current = null;
       }
     },
-    [dispatch],
+    [accessToken, user, isAuthenticated, dispatch],
   );
 
+  /**
+   * Initial authentication bootstrap.
+   *
+   * This runs exactly once when the application starts.
+   */
   useEffect(() => {
-    if (bootstrapAttemptedRef.current) {
-      return undefined;
+    if (bootstrapStartedRef.current) {
+      return;
     }
 
-    bootstrapAttemptedRef.current = true;
+    bootstrapStartedRef.current = true;
 
-    void synchronizeSession({ silent: false });
+    const bootstrap = async () => {
+      await synchronizeSession({ silent: false });
+    };
 
-    return undefined;
+    void bootstrap();
   }, [synchronizeSession]);
 
+  /**
+   * Multi-tab authentication synchronization.
+   *
+   * This does NOT store credentials.
+   * It only informs other tabs that login/logout happened.
+   */
   useEffect(() => {
     if (typeof window === "undefined") {
       return undefined;
@@ -117,9 +167,17 @@ const AuthProvider = ({ children }) => {
 
     const unsubscribe = subscribeToAuthEvents({
       onLogout: () => {
+        setAxiosAuthToken(null);
         dispatch(logout());
       },
+
       onLogin: (payload) => {
+        if (!payload?.accessToken || !payload?.user) {
+          return;
+        }
+
+        setAxiosAuthToken(payload.accessToken);
+
         dispatch(
           loginSuccess({
             accessToken: payload.accessToken,
@@ -129,41 +187,91 @@ const AuthProvider = ({ children }) => {
       },
     });
 
-    const handleVisibility = async () => {
-      if (document.visibilityState === "visible") {
-        const now = Date.now();
+    return unsubscribe;
+  }, [dispatch]);
 
-        if (now - lastRefreshAtRef.current > 60_000) {
-          await synchronizeSession({ silent: true });
-        }
-      }
-    };
+  /**
+   * Restore session when the browser/tab becomes active again.
+   *
+   * We DON'T refresh every time focus changes.
+   * Only refresh if the application has been inactive for
+   * more than 5 minutes.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
 
-    const handleFocus = async () => {
+    const SESSION_REFRESH_INTERVAL = 5 * 60 * 1000;
+
+    const checkSession = async () => {
       const now = Date.now();
 
-      if (now - lastRefreshAtRef.current > 60_000) {
-        await synchronizeSession({ silent: true });
+      if (now - lastRefreshAtRef.current < SESSION_REFRESH_INTERVAL) {
+        return;
+      }
+
+      // If we already have a valid Redux session,
+      // don't unnecessarily call refresh.
+      const state = window.__REDUX_STORE__?.getState?.();
+
+      if (
+        state?.auth?.isAuthenticated &&
+        state?.auth?.accessToken &&
+        state?.auth?.user
+      ) {
+        return;
+      }
+
+      await synchronizeSession({ silent: true });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void checkSession();
       }
     };
 
-    window.addEventListener("visibilitychange", handleVisibility);
+    const handleFocus = () => {
+      void checkSession();
+    };
+
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+
     window.addEventListener("focus", handleFocus);
 
     return () => {
-      unsubscribe();
-      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+
       window.removeEventListener("focus", handleFocus);
     };
-  }, [dispatch, synchronizeSession]);
+  }, [synchronizeSession]);
 
+  /**
+   * Don't render the application until the initial
+   * authentication check has completed.
+   *
+   * This prevents protected pages from briefly flashing
+   * before the refresh-token check finishes.
+   */
   if (!isReady) {
     return (
       <div style={FULL_PAGE_LOADING_STYLE}>
-        <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>
+        <div
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: 700,
+          }}
+        >
           Checking your session…
         </div>
-        <div style={{ fontSize: "0.95rem", color: "#475569" }}>
+
+        <div
+          style={{
+            fontSize: "0.95rem",
+            color: "#475569",
+          }}
+        >
           Restoring your secure access.
         </div>
       </div>
