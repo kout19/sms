@@ -60,6 +60,7 @@ const SuperAdminRoutes = () => {
           </Route>
         </Routes>
       }
+      fallbackPath="/"
     />
   );
 };

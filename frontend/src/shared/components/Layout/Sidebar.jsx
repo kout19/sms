@@ -6,18 +6,36 @@ import { usePermission } from "../../hooks/usePermission";
 import { getNavigationForRole } from "../../config/navigationConfig";
 import { getIcon } from "../../config/iconMap";
 
-const filterNavItems = (items, can) => {
+// Filters items recursively (including children)
+const filterItems = (items, can) => {
   return items
     .map((item) => {
-      if (item.permission && !can(item.permission)) return null;
+      if (item.permission && !can(item.permission)) {
+        return null;
+      }
 
       if (item.children) {
-        const filteredChildren = filterNavItems(item.children, can);
-        if (filteredChildren.length === 0) return null;
+        const filteredChildren = filterItems(item.children, can);
+        if (filteredChildren.length === 0) {
+          return null; // hide parent if all children are hidden
+        }
         return { ...item, children: filteredChildren };
       }
 
       return item;
+    })
+    .filter(Boolean);
+};
+
+// Filters groups, then filters items inside each group
+const filterNavItems = (groups, can) => {
+  return groups
+    .map((group) => {
+      const filteredItems = filterItems(group.items, can);
+      if (filteredItems.length === 0) {
+        return null; // hide entire group if no items left
+      }
+      return { ...group, items: filteredItems };
     })
     .filter(Boolean);
 };
@@ -30,7 +48,7 @@ const Sidebar = () => {
   const [expandedItems, setExpandedItems] = useState({});
 
   const navigation = getNavigationForRole(user?.role);
-  const navItems = filterNavItems(navigation.items, can);
+  const groups = filterNavItems(navigation.groups, can);
 
   const toggleExpanded = (itemId) => {
     setExpandedItems((prev) => ({
@@ -148,8 +166,19 @@ const Sidebar = () => {
         </p>
       )}
 
-      <nav className="flex flex-col gap-1 mt-2 overflow-y-auto">
-        {navItems.map((item) => renderMenuItem(item))}
+      <nav className="flex flex-col gap-4 mt-2 overflow-y-auto">
+        {groups.map((group) => (
+          <div key={group.id}>
+            {isOpen && (
+              <p className="mt-2 mb-1 px-3 text-xs font-semibold text-indigo-400 uppercase tracking-wide">
+                {group.label}
+              </p>
+            )}
+            <div className="flex flex-col gap-1">
+              {group.items.map((item) => renderMenuItem(item))}
+            </div>
+          </div>
+        ))}
       </nav>
     </div>
   );

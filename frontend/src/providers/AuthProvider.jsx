@@ -37,6 +37,9 @@ const toSafeUser = (user = {}) => ({
   email: user.email || "",
   role: user.role,
   isActive: user.isActive ?? true,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+  lastLogin: user.lastLogin,
 });
 
 const AuthProvider = ({ children }) => {

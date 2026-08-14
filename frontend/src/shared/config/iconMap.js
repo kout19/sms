@@ -1,4 +1,11 @@
 import {
+School ,
+Wallet, 
+Layers,
+ShieldCheck, 
+CheckSquare,
+Ticket,
+
   LayoutDashboard,
   GraduationCap,
   List,
@@ -6,6 +13,7 @@ import {
   Download,
   MapPin,
   BookOpen,
+  Blocks,
   Clock,
   CalendarCheck,
   TrendingUp,
@@ -51,6 +59,14 @@ const iconMap = {
   "message-square": MessageSquare,
   "clipboard-list": ClipboardList,
   check: Check,
+  Schools: School,
+  plans: Layers,
+  "shield-check": ShieldCheck,
+  "check-square": CheckSquare,
+  tickets: Ticket,
+  wallet:Wallet,
+  blocks:Blocks,
+  
   "file-text": FileText,
 };
 

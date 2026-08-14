@@ -11,7 +11,8 @@ const initialState = {
   error: null,
 };
 
-const normalizeUser = (user = null) => {
+ const normalizeUser = (user = null) => 
+  {
   if (!user) {
     return null;
   }
@@ -23,6 +24,9 @@ const normalizeUser = (user = null) => {
     email: user.email || "",
     role: user.role,
     isActive: user.isActive ?? true,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    lastLogin: user.lastLogin,
   };
 };
 
