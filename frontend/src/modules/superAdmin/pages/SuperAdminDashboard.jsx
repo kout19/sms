@@ -9,7 +9,7 @@ import SystemAlertsWidget from "../cards/SystemAlertsWidget";
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
-  // console.log(user);
+  console.log(user);
   // const [stats, setStats] = useState(null);
   //  const [chartData, setChartData] = useState(null);
   // cosnt [loading, setLoading] = useState(true);

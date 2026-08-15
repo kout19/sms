@@ -50,6 +50,7 @@ const Sidebar = () => {
   const navigation = getNavigationForRole(user?.role);
   const groups = filterNavItems(navigation.groups, can);
 
+
   const toggleExpanded = (itemId) => {
     setExpandedItems((prev) => ({
       ...prev,

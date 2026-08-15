@@ -1,0 +1,7 @@
+{
+  "name": "school-platform",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

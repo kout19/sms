@@ -161,7 +161,43 @@ export const navigationConfig = {
       },
     ],
   },
+  department_head: {
+    label: "Department Head",
+    groups: [
+      {
+        id: "overview",
+        label: "Overview",
+        items: [
+          {
+            id: "dashboard",
+            label: "Dashboard",
+            icon: "layout-dashboard",
+            path: "/department-head",
+            permission: "view:all_data",
+          },
+        ],
+      },
+    ],
+  },
+  accountant:{
+    label: "Accountant",
+    groups: [
+      {
+        id: "overview",
+        label: "Overview",
+        items: [
+          {
+            id: "dashboard",
+            label: "Dashboard",
+            icon: "layout-dashboard",
+            path: "/accountant",
+            permission: "view:all_data",
+          },
+        ],
+      },
+    ],
 
+  },
   admin: {
     label: "Administrator",
     groups: [

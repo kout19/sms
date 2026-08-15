@@ -45,7 +45,8 @@ const initialNotifications = [
 export default function AppHeader() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
+
+  console.log(user?.role);
   const roleInfo = getRoleInfo(user?.role);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);
@@ -103,7 +104,7 @@ export default function AppHeader() {
           <h1 className="text-base font-semibold text-gray-900">Dashboard</h1>
           <p className="text-xs text-gray-400">
             Welcome back, {user?.firstName || "User"}
-            {roleInfo?.displayName ? ` · ${roleInfo.displayName}` : ""}
+            {user?.role ? ` · ${user?.role}` : ""}
           </p>
         </div>
 
@@ -242,7 +243,7 @@ export default function AppHeader() {
                   </p>
                   <p className="text-xs text-gray-400">{user?.email}</p>
                   <p className="text-xs text-gray-400 capitalize mt-1">
-                    Role: {roleInfo?.displayName || user?.role}
+                    Role: {user?.role || "Department Head"}
                   </p>
                 </div>
                 <ul className="py-1">

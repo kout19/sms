@@ -8,6 +8,31 @@ export const rolePermissions = {
     description: "Full platform access",
     permissions: ["all"],
   },
+  "department_head": {
+    displayName: "Department Head",
+    description: "Manage classes and student progress",
+    permissions: [
+      "view:students",
+      "edit:grades",
+      "view:classes",
+      "view:attendance",
+      "mark:attendance",
+      "view:schedule",
+      "view:announcements",
+      "post:announcements",
+    ],
+  },
+  "accountant": {
+    displayName: "Accountant",
+    description: "View own academic information",
+    permissions: [
+      "view:own_grades",
+      "view:own_attendance",
+      "view:own_schedule",
+      "view:announcements",
+      "view:messages",
+    ],
+  },
 
   admin: {
     displayName: "Administrator",
@@ -64,6 +89,7 @@ export const rolePermissions = {
   },
 };
 
+
 export const hasPermission = (userRole, permission) => {
   if (!userRole || !permission) return false;
 
@@ -79,6 +105,7 @@ export const hasAnyPermission = (userRole, permissions = []) => {
   if (!Array.isArray(permissions)) return false;
   return permissions.some((permission) => hasPermission(userRole, permission));
 };
+
 
 export const hasAllPermissions = (userRole, permissions = []) => {
   if (!Array.isArray(permissions)) return false;

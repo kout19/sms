@@ -1,17 +1,37 @@
 const AppError = require("../utils/AppError");
+const { hasPermission } = require("@packages/shared");
 
-const authorize = (...allowedRoles) => {
+const authorize = (...requiredPermissions) => {
   return (req, res, next) => {
-    const userRole = req.user?.role;
-
-    if (!userRole || !allowedRoles.includes(userRole)) {
+    if (!req.user) {
+      return next(new AppError("Authentication required", 401));
+    }
+    const allowed = requiredPermissions.some((p) =>
+      hasPermission(req.user.role, p),
+    );
+    if (!allowed) {
       return next(
-        new AppError("You are not authorized to access this resource", 403),
+        new AppError("You do not have permission to perform this action", 403),
       );
     }
-
     next();
   };
 };
 
 module.exports = authorize;
+
+// const authorize = (...allowedRoles) => {
+//   return (req, res, next) => {
+//     const userRole = req.user?.role;
+
+//     if (!userRole || !allowedRoles.includes(userRole)) {
+//       return next(
+//         new AppError("You are not authorized to access this resource", 403),
+//       );
+//     }
+
+//     next();
+//   };
+// };
+
+// module.exports = authorize;

@@ -1,0 +1,13 @@
+{
+  "name": "@packages/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "./permissions/index.js",
+ 
+  "scripts": {
+    "build": "node scripts/build-esm.cjs"
+  }
+}
+
+
