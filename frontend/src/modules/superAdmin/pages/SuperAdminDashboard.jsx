@@ -2,10 +2,9 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import { dateFromatter } from "../../../shared/utils/dateFromatter";
 import MetricCard from "../cards/MetricCard";
 import SchoolGrowthChart from "../cards/SchoolGrouthChart";
-import PlatformRevenueChart from "../cards/PaltformRevenuChart";
+import GenericBarChart from "../cards/GenericBarChart";
 import SchoolOverviewWidget from "../cards/SchoolOverviewWidget";
 import SystemAlertsWidget from "../cards/SystemAlertsWidget";
-
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
@@ -121,104 +120,132 @@ const SuperAdminDashboard = () => {
     { month: "Aug", active: 55, total: 58 },
   ];
   const platformRevenu = [
-    { month: "Mar", revenue: 840, target: 500 },
-    { month: "Apr", revenue: 920, target: 580 },
-    { month: "May", revenue: 750, target: 500 },
-    { month: "Jun", revenue: 1100, target: 620 },
-    { month: "Jul", revenue: 1200, target: 700 },
-    { month: "Aug", revenue: 980, target: 600 },
+    { month: "Mar", revenue: 840, expense: 500 },
+    { month: "Apr", revenue: 920, expense: 580 },
+    { month: "May", revenue: 750, expense: 500 },
+    { month: "Jun", revenue: 1100, expense: 620 },
+    { month: "Jul", revenue: 1200, expense: 700 },
+    { month: "Aug", revenue: 980, expense: 600 },
   ];
 
+  // Schools table must backend must like this:
+  // {
+  //   "success": true,
+  //   "count": 3,
+  //   "data": [
+  //     {
+  //       "id": "sch_01",
+  //       "code": "SCH-1001",
+  //       "name": "Haile Academy",
+  //       "status": "Active",
+  //       "studentCount": 1240,
+  //       "teacherCount": 85,
+  //       "plan": "Enterprise",
+  //       "email": "info@haileacademy.edu.et",
+  //       "logoUrl": null
+  //     },
+  //     {
+  //       "id": "sch_02",
+  //       "code": "SCH-1002",
+  //       "name": "Bole Community School",
+  //       "status": "Active",
+  //       "studentCount": 850,
+  //       "teacherCount": 42,
+  //       "plan": "Standard",
+  //       "email": "admin@bolecommunity.com",
+  //       "logoUrl": null
+  //     }
+  //   ]
+  // }
 
-// Schools table must backend must like this:
-// {
-//   "success": true,
-//   "count": 3,
-//   "data": [
-//     {
-//       "id": "sch_01",
-//       "code": "SCH-1001",
-//       "name": "Haile Academy",
-//       "status": "Active",
-//       "studentCount": 1240,
-//       "teacherCount": 85,
-//       "plan": "Enterprise",
-//       "email": "info@haileacademy.edu.et",
-//       "logoUrl": null
-//     },
-//     {
-//       "id": "sch_02",
-//       "code": "SCH-1002",
-//       "name": "Bole Community School",
-//       "status": "Active",
-//       "studentCount": 850,
-//       "teacherCount": 42,
-//       "plan": "Standard",
-//       "email": "admin@bolecommunity.com",
-//       "logoUrl": null
-//     }
-//   ]
-// }
-
-const schoolsCard = [
-  { id: "sch_01", code: "SCH-1001", name: "Haile Academy", status: "Active", studentCount: 1240, teacherCount: 85, plan: "Enterprise", email: "info@haileacademy.edu.et", logoUrl: null },
-  { id: "sch_02", code: "SCH-1002", name: "Bole Community School", status: "Active", studentCount: 850, teacherCount: 42, plan: "Standard", email: "admin@bolecommunity.com", logoUrl: null },
-  { id: "sch_03", code: "SCH-1003", name: "Bole Community School", status: "Active", studentCount: 850, teacherCount: 42, plan: "Standard", email: "admin@bolecommunity.com", logoUrl: null },
-
-];
-
-// System Alert backend must like this:
-// {
-//   "success": true,
-//   "data": [
-//     {
-//       "id": "alt_01",
-//       "severity": "critical",
-//       "message": "3 failed login spike at Unity Academy — 47 attempts in 2h",
-//       "timeAgo": "12 min ago",
-//       "timestamp": "2026-08-14T21:20:00Z"
-//     },
-//     {
-//       "id": "alt_02",
-//       "severity": "warning",
-//       "message": "Subscription expiring: Capital School, Sunrise International, + 3 more in 14 days",
-//       "timeAgo": "2h ago",
-//       "timestamp": "2026-08-14T19:30:00Z"
-//     },
-//     {
-//       "id": "alt_03",
-//       "severity": "info",
-//       "message": "v2.4.1 patch deployment queued for 15 Aug 02:00 UTC",
-//       "timeAgo": "5h ago",
-//       "timestamp": "2026-08-14T16:30:00Z"
-//     }
-//   ]
-// }
-
-const systemAlerts=[
-   {
-      "id": "alt_01",
-      "severity": "critical",
-      "message": "3 failed login spike at Unity Academy — 47 attempts in 2h",
-      "timeAgo": "12 min ago",
-      "timestamp": "2026-08-14T21:20:00Z"
+  const schoolsCard = [
+    {
+      id: "sch_01",
+      code: "SCH-1001",
+      name: "Haile Academy",
+      status: "Active",
+      studentCount: 1240,
+      teacherCount: 85,
+      plan: "Enterprise",
+      email: "info@haileacademy.edu.et",
+      logoUrl: null,
     },
     {
-      "id": "alt_02",
-      "severity": "warning",
-      "message": "Subscription expiring: Capital School, Sunrise International, + 3 more in 14 days",
-      "timeAgo": "2h ago",
-      "timestamp": "2026-08-14T19:30:00Z"
+      id: "sch_02",
+      code: "SCH-1002",
+      name: "Bole Community School",
+      status: "Active",
+      studentCount: 850,
+      teacherCount: 42,
+      plan: "Standard",
+      email: "admin@bolecommunity.com",
+      logoUrl: null,
     },
     {
-      "id": "alt_03",
-      "severity": "info",
-      "message": "v2.4.1 patch deployment queued for 15 Aug 02:00 UTC",
-      "timeAgo": "5h ago",
-      "timestamp": "2026-08-14T16:30:00Z"
-    }
+      id: "sch_03",
+      code: "SCH-1003",
+      name: "Bole Community School",
+      status: "Active",
+      studentCount: 850,
+      teacherCount: 42,
+      plan: "Standard",
+      email: "admin@bolecommunity.com",
+      logoUrl: null,
+    },
+  ];
 
-]
+  // System Alert backend must like this:
+  // {
+  //   "success": true,
+  //   "data": [
+  //     {
+  //       "id": "alt_01",
+  //       "severity": "critical",
+  //       "message": "3 failed login spike at Unity Academy — 47 attempts in 2h",
+  //       "timeAgo": "12 min ago",
+  //       "timestamp": "2026-08-14T21:20:00Z"
+  //     },
+  //     {
+  //       "id": "alt_02",
+  //       "severity": "warning",
+  //       "message": "Subscription expiring: Capital School, Sunrise International, + 3 more in 14 days",
+  //       "timeAgo": "2h ago",
+  //       "timestamp": "2026-08-14T19:30:00Z"
+  //     },
+  //     {
+  //       "id": "alt_03",
+  //       "severity": "info",
+  //       "message": "v2.4.1 patch deployment queued for 15 Aug 02:00 UTC",
+  //       "timeAgo": "5h ago",
+  //       "timestamp": "2026-08-14T16:30:00Z"
+  //     }
+  //   ]
+  // }
+
+  const systemAlerts = [
+    {
+      id: "alt_01",
+      severity: "critical",
+      message: "3 failed login spike at Unity Academy — 47 attempts in 2h",
+      timeAgo: "12 min ago",
+      timestamp: "2026-08-14T21:20:00Z",
+    },
+    {
+      id: "alt_02",
+      severity: "warning",
+      message:
+        "Subscription expiring: Capital School, Sunrise International, + 3 more in 14 days",
+      timeAgo: "2h ago",
+      timestamp: "2026-08-14T19:30:00Z",
+    },
+    {
+      id: "alt_03",
+      severity: "info",
+      message: "v2.4.1 patch deployment queued for 15 Aug 02:00 UTC",
+      timeAgo: "5h ago",
+      timestamp: "2026-08-14T16:30:00Z",
+    },
+  ];
 
   return (
     <div className="space-y-6 p-6">
@@ -257,7 +284,16 @@ const systemAlerts=[
       {/* Chart cards */}
       <div className="grid  grid-cols-1 lg:grid-cols-2  gap-6">
         <SchoolGrowthChart data={schoolGrowth} />
-        <PlatformRevenueChart data={platformRevenu} />
+        <GenericBarChart
+          title="Revenue vs Expense"
+          rightElement="ETB Thousands :6 months"
+          data={platformRevenu}
+          xAxisKey="month"
+          bars={[
+            { dataKey: "revenue", fill: "#2563EB", name: "Revenue (ETB)" },
+            { dataKey: "expense", fill: "#DBEAFE", name: "Expense (ETB)" },
+          ]}
+        />
       </div>
       {/* School table card */}
       <div className="">

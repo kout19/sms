@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import {toSafeUser} from "@packages/shared";
 
 const initialState = {
   user: null,
@@ -11,24 +12,33 @@ const initialState = {
   error: null,
 };
 
- const normalizeUser = (user = null) => 
-  {
-  if (!user) {
-    return null;
-  }
+//  const toSafeUser = (user = null) => 
+//   {
+//   if (!user) {
+//     return null;
+//   }
 
-  return {
-    id: user._id || user.id,
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    email: user.email || "",
-    role: user.role,
-    isActive: user.isActive ?? true,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-    lastLogin: user.lastLogin,
-  };
-};
+//   return {
+//     id: user._id || user.id,
+//     firstName: user.firstName || "",
+//     lastName: user.lastName || "",
+//     email: user.email || "",
+//     role: user.role,
+//     isActive: user.isActive ?? true,
+//     createdAt: user.createdAt,
+//     updatedAt: user.updatedAt,
+//     lastLogin: user.lastLogin,
+//     schoolId: user.schoolId ?? null,
+//     school: user.school
+//       ? {
+//           id: user.school.id,
+//           name: user.school.name,
+//           slug: user.school.slug,
+//           isActive: user.school.isActive,
+//         }
+//       : null,
+//   };
+// };
 
 const authSlice = createSlice({
   name: "auth",
@@ -52,7 +62,7 @@ const authSlice = createSlice({
     loginSuccess(state, action) {
       const { user, accessToken } = action.payload;
 
-      state.user = normalizeUser(user);
+      state.user = toSafeUser(user);
       state.accessToken = accessToken;
       state.role = user?.role || state.role;
       state.isAuthenticated = Boolean(accessToken && state.user);

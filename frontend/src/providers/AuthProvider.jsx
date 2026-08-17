@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { refreshToken as refreshTokenService } from "../modules/auth/services/authService";
 
 import { setAxiosAuthToken } from "../shared/api/axios";
+import {toSafeUser} from "@packages/shared";
 
 import {
   loginSuccess,
@@ -30,17 +31,26 @@ const FULL_PAGE_LOADING_STYLE = {
   fontFamily: "Inter, system-ui, sans-serif",
 };
 
-const toSafeUser = (user = {}) => ({
-  id: user._id || user.id,
-  firstName: user.firstName || "",
-  lastName: user.lastName || "",
-  email: user.email || "",
-  role: user.role,
-  isActive: user.isActive ?? true,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-  lastLogin: user.lastLogin,
-});
+// const toSafeUser = (user = {}) => ({
+//   id: user._id || user.id,
+//   firstName: user.firstName || "",
+//   lastName: user.lastName || "",
+//   email: user.email || "",
+//   role: user.role,
+//   isActive: user.isActive ?? true,
+//   createdAt: user.createdAt,
+//   updatedAt: user.updatedAt,
+//   lastLogin: user.lastLogin,
+//    school: user.school
+//     ? {
+//         id: user.school.id,
+//         name: user.school.name,
+//         slug: user.school.slug,
+//         isActive: user.school.isActive,
+//       }
+//     : null,
+
+// });
 
 const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();

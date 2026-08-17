@@ -46,7 +46,6 @@ export default function AppHeader() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  console.log(user?.role);
   const roleInfo = getRoleInfo(user?.role);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);

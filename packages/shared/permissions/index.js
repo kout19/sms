@@ -4,11 +4,59 @@
 // (index.mjs) is a thin wrapper around this file, not a separate copy -
 // see index.mjs before editing that file.
 
-const PERMISSIONS = {
+const PERMISSIONS_RAW = {
   ALL: "all",
 
   MANAGE_USERS: "manage:users",
   VIEW_USERS: "view:users",
+
+  VIEW_ATTENDANCE: "view:attendance",
+  MANAGE_ATTENDANCE: "manage:attendance",
+  VIEW_DASHBOARD: "view:dashboard",
+  MANAGE_STUDENTS: "manage:students",
+  MANAGE_SETTINGS: "manage:settings",
+  MANAGE_ANNOUNCEMENTS: "manage:anouncements",
+  MANAGE_INVOICES: "manage:invoices",
+
+  VIEW_EXAMS: "view:exams",
+  MANAGE_EXAMS: "manage:exams",
+
+  MANAGE_PLANS: "manage:plans",
+  MANGE_LOGS: "manage:logs",
+
+  MANAGE_SECURITY: "manage:security",
+  MANGE_INTEGRATIONS: "manage:integrations",
+  MANAGE_TASKS: "manage:tasks",
+  MANAGE_ANALYTICS: "manage:analytics",
+  MANAGE_TICKETS: "manage:tickets",
+
+  MANAGE_STUDENTS_PAYMENT: "manage:students_payment",
+  MANAGE_FEES: "manage:fees",
+  MANAGE_FINANCIAL_STATEMENTS: "manage:financial_statements",
+
+  VIEW_ASSIGNMENTS: "view:assignments",
+  MANAGE_ASSIGNMENTS: "manage:assignments",
+
+  VIEW_PERFORMANCE: "view:performance",
+  MANAGE_PERFORMANCE: "manage:performance",
+
+  VIEW_GRADES: "view:grades",
+  MANAGE_GRADES: "manage:grades",
+
+  VIEW_LOGS: "view:logs",
+  MANAGE_LOGS: "manage:logs",
+
+  VIEW_SCHOOLS: "view:schools",
+  MANAGE_SCHOOLS: "manage:schools",
+
+  VIEW_SUBSCRIPTIONS: "view:subscriptions",
+  MANAGE_SUBSCRIPTIONS: "manage:subscriptions",
+
+  VIEW_TENANTS: "view:tenants",
+  MANAGE_TENANTS: "manage:tenants",
+
+  VIEW_ROLES: "view:roles",
+  MANAGE_ROLES: "manage:roles",
 
   VIEW_STUDENTS: "view:students",
   VIEW_CLASSES: "view:classes",
@@ -16,6 +64,8 @@ const PERMISSIONS = {
   EDIT_GRADES: "edit:grades",
   VIEW_OWN_GRADES: "view:own_grades",
   VIEW_CHILD_GRADES: "view:child_grades",
+  VIEW_PROGRESS: "view:progress",
+  VIEW_DOCUMENTS: "view:documents",
 
   VIEW_ATTENDANCE: "view:attendance",
   MARK_ATTENDANCE: "mark:attendance",
@@ -40,7 +90,43 @@ const PERMISSIONS = {
 
   MANAGE_SCHOOL_SETTINGS: "manage:school_settings",
   VIEW_REPORTS: "view:reports",
+
+  MANAGE_SUBJECTS: "manage:subjects",
+  VIEW_SUBJECTS: "view:subjects",
+
+  VIEW_OWN_REPORTS: "view:own_reports",
+  VIEW_CHILD_REPORTS: "view:child_reports",
+
+  VIEW_PARENTS: "view:parents",
+
+  VIEW_OWN_PARENTS: "view:own_parents",
+  VIEW_CHILD_PARENTS: "view:child_parents",
+
+  MANAGE_OUTSTANDING_BALANCES: "manage:outstanding_balances",
+  VIEW_OUTSTANDING_BALANCES: "view:outstanding_balances",
+  MANAGE_REVENUE_REPORTS: "manage:revenue_reports",
+  VIEW_REVENUE_REPORTS: "view:revenue_reports",
+
+  // accountant
+  MANAGE_EXPENSES: "manage:expenses",
+  VIEW_EXPENSES: "view:expenses",
+  MANAGE_PAYMENT_REMINDERS: "manage:payment_reminders",
+  VIEW_BALANACES: "view:balances",
+  MANAGE_REPORTS: "manage:reports",
+  MANAGE_PAYROLL: "manage:payroll",
 };
+
+const PERMISSIONS = new Proxy(PERMISSIONS_RAW, {
+  get(target, prop) {
+    if (!(prop in target)) {
+      throw new Error(
+        `PERMISSIONS.${String(prop)} does not exist. Check for a typo or add it to permissions/index.js.`,
+      );
+    }
+    return target[prop];
+  },
+});
+
 
 const rolePermissions = {
   super_admin: {
@@ -62,15 +148,21 @@ const rolePermissions = {
     permissions: [
       PERMISSIONS.VIEW_STUDENTS,
       PERMISSIONS.VIEW_CLASSES,
+      PERMISSIONS.MANAGE_TEACHERS,
       PERMISSIONS.MANAGE_CLASSES,
       PERMISSIONS.EDIT_GRADES,
       PERMISSIONS.VIEW_ATTENDANCE,
       PERMISSIONS.MARK_ATTENDANCE,
       PERMISSIONS.VIEW_SCHEDULE,
-      PERMISSIONS.MANAGE_TEACHERS,
       PERMISSIONS.VIEW_DEPARTMENT_REPORTS,
       PERMISSIONS.VIEW_ANNOUNCEMENTS,
       PERMISSIONS.POST_ANNOUNCEMENTS,
+      PERMISSIONS.VIEW_MESSAGES,
+      PERMISSIONS.MANAGE_SUBJECTS,
+      PERMISSIONS.VIEW_SUBJECTS,
+      PERMISSIONS.VIEW_ANNOUNCEMENTS,
+      PERMISSIONS.VIEW_REPORTS,
+      PERMISSIONS.MANAGE_STUDENTS,
     ],
   },
   teacher: {
@@ -98,9 +190,28 @@ const rolePermissions = {
       PERMISSIONS.MANAGE_PAYMENTS,
       PERMISSIONS.VIEW_INVOICES,
       PERMISSIONS.ISSUE_INVOICES,
+      PERMISSIONS.MANAGE_FEES,
+      PERMISSIONS.MANAGE_INVOICES,
+
       PERMISSIONS.VIEW_REPORTS,
       PERMISSIONS.VIEW_ANNOUNCEMENTS,
       PERMISSIONS.VIEW_MESSAGES,
+      PERMISSIONS.MANAGE_EXPENSES,
+      PERMISSIONS.VIEW_EXPENSES,
+      PERMISSIONS.MANAGE_PAYMENT_REMINDERS,
+      PERMISSIONS.VIEW_BALANACES,
+      PERMISSIONS.MANAGE_PAYROLL,
+      PERMISSIONS.MANAGE_REPORTS,
+      PERMISSIONS.MANAGE_REVENUE_REPORTS,
+      PERMISSIONS.VIEW_REVENUE_REPORTS,
+      PERMISSIONS.MANAGE_OUTSTANDING_BALANCES,
+      PERMISSIONS.VIEW_OUTSTANDING_BALANCES,
+      PERMISSIONS.MANAGE_STUDENTS_PAYMENT,
+      PERMISSIONS.VIEW_DASHBOARD,
+      PERMISSIONS.MANAGE_PAYROLL,
+      PERMISSIONS.MANAGE_TASKS,
+      PERMISSIONS.MANAGE_FINANCIAL_STATEMENTS,
+   
     ],
   },
   student: {
@@ -113,6 +224,8 @@ const rolePermissions = {
       PERMISSIONS.VIEW_OWN_SCHEDULE,
       PERMISSIONS.VIEW_ANNOUNCEMENTS,
       PERMISSIONS.VIEW_MESSAGES,
+      PERMISSIONS.VIEW_DASHBOARD,
+      
     ],
   },
   parent: {
@@ -169,6 +282,7 @@ function getRoleInfo(role) {
     }
   );
 }
+
 
 module.exports = {
   PERMISSIONS,

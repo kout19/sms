@@ -1,5 +1,7 @@
 const userRepository = require("../users/user.repository");
-const { comparePassword, toSafeUser } = require("../users/user.helpers");
+const { toSafeUser } = require("@packages/shared");
+
+const { comparePassword } = require("../users/user.helpers");
 const env = require("../../config/env");
 const AppError = require("../../utils/AppError");
 const {
@@ -8,12 +10,14 @@ const {
   verifyRefreshToken,
 } = require("../../config/jwt");
 const { cookieOptions } = require("../../config/cookies");
+const { school } = require("../../config/prisma");
 
 const login = async ({ email, password }) => {
   const normalizedEmail = String(email || "")
     .trim()
     .toLowerCase();
   const user = await userRepository.findByEmailWithPassword(normalizedEmail);
+  console.log("LOGIN FETCHED USER:", JSON.stringify(user, null, 2));
 
   if (!user) {
     throw new AppError("Invalid email or password", 401);
@@ -32,6 +36,7 @@ const login = async ({ email, password }) => {
   const accessToken = generateAccessToken({
     sub: user.id,
     role: user.role,
+    schoolId: user.schoolId,
   });
 
   const refreshToken = generateRefreshToken({
@@ -46,7 +51,9 @@ const login = async ({ email, password }) => {
     refreshToken,
     user: toSafeUser(updatedUser),
   };
+  console.log("LOGIN USER:", JSON.stringify(user, null, 2));
 };
+
 
 const refreshToken = async (refreshTokenValue) => {
   if (!refreshTokenValue) {
@@ -70,6 +77,7 @@ const refreshToken = async (refreshTokenValue) => {
   const accessToken = generateAccessToken({
     sub: user.id,
     role: user.role,
+    schoolId: user.schoolId,
   });
 
   return {

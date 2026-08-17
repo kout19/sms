@@ -1,4 +1,3 @@
-
 import {
   BarChart,
   Bar,
@@ -10,13 +9,16 @@ import {
 } from "recharts";
 import ChartCard from "./ChartCard";
 
-const PlatformRevenueChart = ({ data, isLoading }) => {
+const GenericBarChart = ({
+  title = "BAR CHART",
+  rightElement,
+  data = [],
+  xAxisKey = "name",
+  bars = [], // Array of bar configs: [{ dataKey: "score", fill: "#2563EB", name: "Avg Score" }]
+  isLoading = false,
+}) => {
   return (
-    <ChartCard
-      title="PLATFORM REVENUE"
-      rightElement="ETB thousands"
-      isLoading={isLoading}
-    >
+    <ChartCard title={title} rightElement={rightElement} isLoading={isLoading}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
@@ -29,7 +31,7 @@ const PlatformRevenueChart = ({ data, isLoading }) => {
             stroke="#F1F5F9"
           />
           <XAxis
-            dataKey="month"
+            dataKey={xAxisKey}
             stroke="#94A3B8"
             fontSize={12}
             tickLine={false}
@@ -48,24 +50,21 @@ const PlatformRevenueChart = ({ data, isLoading }) => {
             }}
             cursor={{ fill: "#F8FAFC" }}
           />
-          {/* Main Revenue Bar */}
-          <Bar
-            dataKey="revenue"
-            fill="#2563EB"
-            radius={[4, 4, 0, 0]}
-            barSize={20}
-          />
-          {/* Secondary / Projected Bar */}
-          <Bar
-            dataKey="target"
-            fill="#E2E8F0"
-            radius={[4, 4, 0, 0]}
-            barSize={20}
-          />
+          {/* Dynamically render all configured bars */}
+          {bars.map((bar) => (
+            <Bar
+              key={bar.dataKey}
+              dataKey={bar.dataKey}
+              name={bar.name || bar.dataKey}
+              fill={bar.fill || "#2563EB"}
+              radius={[4, 4, 0, 0]}
+              barSize={20}
+            />
+          ))}
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
   );
 };
 
-export default PlatformRevenueChart;
+export default GenericBarChart;

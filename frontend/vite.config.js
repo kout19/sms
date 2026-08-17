@@ -10,5 +10,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["@packages/shared"],
+    force: true,
   },
 });

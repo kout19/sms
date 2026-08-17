@@ -3,20 +3,19 @@ import RolePlaceholderPage from "../../../shared/components/RolePlaceholderPage"
 
 const AccountantDashboard = () => {
   const { user } = useAuth();
+  console.log(user);
 
   return (
     <div className="space-y-6 p-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">
-          Finance operations
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-          Welcome, {user?.firstName || "Accountant"}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm text-slate-600">
-          Review fees, invoices, payments, and financial oversight from a
-          dedicated finance workspace.
-        </p>
+      <div>
+        <div>
+          <h1>Finance Overview</h1>
+          <span>{user?.school?.name || "No defined school"}</span>
+        </div>
+        <div>
+          <div className="w-2 h-2 bg-green-500"></div>
+          Finance Officer . A.A
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

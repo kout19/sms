@@ -2,7 +2,7 @@ const { login, refreshToken, logout } = require("./auth.service");
 const { cookieOptions } = require("../../config/cookies");
 const asyncHandler = require("../../utils/asyncHandler");
 const { validateLoginRequest } = require("./auth.validation");
-const env=require("../../config/env");
+const env = require("../../config/env");
 
 const loginController = asyncHandler(async (req, res) => {
   validateLoginRequest(req);
@@ -12,6 +12,7 @@ const loginController = asyncHandler(async (req, res) => {
     refreshToken: newRefreshToken,
     user,
   } = await login(req.body);
+  // console.log(user);
 
   res.cookie(env.cookie.name, newRefreshToken, cookieOptions);
 

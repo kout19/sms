@@ -8,13 +8,21 @@ const findByEmailWithPassword = async (email) => {
         mode: "insensitive",
       },
     },
+    include: {
+      school: true,
+    },
   });
 };
 
 const findById = async (id) => {
-  return prisma.user.findUnique({
+ const user = await prisma.user.findUnique({
     where: { id },
+    include: {
+      school: true,
+    },
   });
+//  console.log("PRISMA FETCH USER:", JSON.stringify(user, null, 2));
+ return user;
 };
 
 const updateLastLogin = async (id) => {
@@ -22,6 +30,9 @@ const updateLastLogin = async (id) => {
     where: { id },
     data: {
       lastLogin: new Date(),
+    },
+    include: {
+      school: true,
     },
   });
 };
