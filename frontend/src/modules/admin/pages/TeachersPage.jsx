@@ -1,6 +1,7 @@
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
-import TeacherCard from "../cards/TeacherCard";
+import TeacherCard from "../components/cards/TeacherCard";
+import{useTeachers, useCreateTeacher,useUpdateTeacher, useDeleteTeacher, useToggleTeacherStatus} from "../hooks/useTeachers";
 
 const courses = [
   { id: 1, name: "Mathematics" },
@@ -36,7 +37,10 @@ const teachersData = [
   },
 ];
 
-const Teachers = () => {
+const TeachersPage = () => {
+  // const [data: teachers =[], isLoading, isError] = useTeachers();
+  const createTeacher =useCreateTeacher();
+  const deleteTeacher = useDeleteTeacher();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,7 +100,7 @@ const Teachers = () => {
           </select>
         </div>
       </div>
-      <div className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {teachersData.map((teacher, index) => (
           <TeacherCard
             key={index}
@@ -115,4 +119,4 @@ const Teachers = () => {
   );
 };
 
-export default Teachers;
+export default TeachersPage;

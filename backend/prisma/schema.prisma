@@ -36,6 +36,7 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   school              School?   @relation(fields: [schoolId], references: [id])
+  teacherProfile      TeacherProfile?
 
   @@index([schoolId])
   @@index([schoolId, role])
@@ -44,6 +45,17 @@ model User {
   @@index([role], map: "idx_users_role")
   @@index([schoolId], map: "idx_users_school_id")
   @@map("users")
+}
+
+model TeacherProfile {
+  userId         String    @id @db.Uuid   
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId   String?
+  hireDate       DateTime?
+  qualifications String?
+  employeeId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 enum UserRole {

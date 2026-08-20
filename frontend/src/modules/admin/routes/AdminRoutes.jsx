@@ -1,12 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import AdminDashboard from "../pages/AdminDashboard";
-import AdminLayout from "../layouts/AdminLayout";
-import Settings from "../pages/Settings";
-import Students from "../pages/Students";
-import Teachers from "../pages/Teachers";
-import Classes from "../pages/Classes";
-import Attendance from "../pages/Attendance";
+ import AdminLayout from "../layouts/AdminLayout";
+import Settings from "../pages/SettingsPage";
+import Students from "../pages/StudentsPage";
+import Teachers from "../pages/TeachersPage";
+import Classes from "../pages/ClassesPage";
+import Attendance from "../pages/AttendancePage";
 import { ProtectedRoute } from "../../../shared/utils";
+
 
 /**
  * Admin Routes - Protected routes for admin module

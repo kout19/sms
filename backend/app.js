@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./modules/auth/auth.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
+const teacherRoutes = require("./modules/teachers/teacher.routes");
 
 const app = express();
 
@@ -27,6 +28,10 @@ if (process.env.NODE_ENV === "development") {
 // ---- Routes ----
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/v1/auth", authRoutes);
+
+//-----Teachers routes-----
+
+app.use("/api/v1/admin/teachers", teacherRoutes);
 
 // ---- Error Handling (always last) ----
 app.use(notFound);

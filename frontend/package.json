@@ -14,6 +14,7 @@
     "@packages/shared": "file:../packages/shared",
     "@reduxjs/toolkit": "^2.12.0",
     "@tailwindcss/vite": "^4.3.0",
+    "@tanstack/react-query-devtools": "^5.101.4",
     "axios": "^1.18.1",
     "chart.js": "^4.5.1",
     "lucide-react": "^1.16.0",

@@ -413,8 +413,8 @@ export const navigationConfig = {
         ],
       },
       {
-        id: "academic-management",
-        label: "Academic Management",
+        id: "users",
+        label: "Users",
         items: [
           {
             id: "students",
@@ -471,31 +471,94 @@ export const navigationConfig = {
             ],
           },
           {
+            id: "department",
+            label: "Departments",
+            icon: "building",
+            path: "/admin/classes",
+            permission: PERMISSIONS.MANAGE_CLASSES,
+            children: [
+              {
+                id: "department-list",
+                label: "All Departments",
+                icon: "building",
+                path: "/admin/departments",
+              },
+              {
+                id: "department-add",
+                label: "Create Department",
+                icon: "plus",
+                path: "/admin/departments/add",
+              },
+            ],
+          },
+          {
+            id: "accountant",
+            label: "Accountant",
+            icon: "dollar-sign",
+            path: "/admin/accountant",
+            permission: PERMISSIONS.MANAGE_ATTENDANCE,
+            children: [
+              {
+                id: "accountant-list",
+                label: "All Accountants",
+                icon: "list",
+                path: "/admin/accountant",
+              },
+              {
+                id: "accountant-add",
+                label: "Add Accountant",
+                icon: "plus",
+                path: "/admin/accountant/add",
+              },
+            ],
+          },
+          {
+            id: "parent",
+            label: "Parents",
+            icon: "users",
+            path: "/admin/parents",
+            permission: PERMISSIONS.MANAGE_PARENTS,
+            children: [
+              {
+                id: "parent-list",
+                label: "All Parents",
+                icon: "list",
+                path: "/admin/parents",
+              },
+              {
+                id: "parent-add",
+                label: "Add Parent",
+                icon: "plus",
+                path: "/admin/parents/add",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "academic-management",
+        label: "Academic Management",
+        items: [
+          {
+            id: "subjects",
+            label: "Subjects",
+            icon: "book-open",
+            path: "/admin/subjects",
+            permission: PERMISSIONS.MANAGE_SUBJECTS,
+          },
+          {
+            id: "exams",
+            label: "Exams",
+            icon: "file-text",
+            path: "/admin/exams",
+            permission: PERMISSIONS.MANAGE_EXAMS,
+          },
+          {
             id: "classes",
             label: "Classes",
             icon: "book-open",
             path: "/admin/classes",
             permission: PERMISSIONS.MANAGE_CLASSES,
-            children: [
-              {
-                id: "classes-list",
-                label: "All Classes",
-                icon: "list",
-                path: "/admin/classes",
-              },
-              {
-                id: "classes-add",
-                label: "Create Class",
-                icon: "plus",
-                path: "/admin/classes/add",
-              },
-              {
-                id: "class-schedule",
-                label: "Schedule",
-                icon: "clock",
-                path: "/admin/classes/schedule",
-              },
-            ],
           },
           {
             id: "attendance",
@@ -506,6 +569,7 @@ export const navigationConfig = {
           },
         ],
       },
+
       {
         id: "reports",
         label: "Reports",
@@ -536,6 +600,26 @@ export const navigationConfig = {
                 path: "/admin/reports/financial",
               },
             ],
+          },
+        ],
+      },
+      {
+        id: "messages",
+        label: "Messages",
+        items: [
+          {
+            id: "messages",
+            label: "Messages",
+            icon: "message-square",
+            path: "/admin/messages",
+            permission: PERMISSIONS.MANAGE_MESSAGES,
+          },
+          {
+            id: "announcements",
+            label: "Announcements",
+            icon: "megaphone",
+            path: "/admin/announcements",
+            permission: PERMISSIONS.MANAGE_ANNOUNCEMENTS,
           },
         ],
       },

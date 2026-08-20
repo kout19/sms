@@ -5,6 +5,7 @@ Layers,
 ShieldCheck, 
 CheckSquare,
 Ticket,
+Building2,
 
   LayoutDashboard,
   GraduationCap,
@@ -66,6 +67,8 @@ const iconMap = {
   tickets: Ticket,
   wallet:Wallet,
   blocks:Blocks,
+  building:Building2,
+
   
   "file-text": FileText,
 };

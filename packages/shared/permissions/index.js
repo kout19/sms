@@ -17,6 +17,7 @@ const PERMISSIONS_RAW = {
   MANAGE_SETTINGS: "manage:settings",
   MANAGE_ANNOUNCEMENTS: "manage:anouncements",
   MANAGE_INVOICES: "manage:invoices",
+  MANAGE_PARENTS:"manage:parents",
 
   VIEW_EXAMS: "view:exams",
   MANAGE_EXAMS: "manage:exams",
@@ -42,6 +43,7 @@ const PERMISSIONS_RAW = {
 
   VIEW_GRADES: "view:grades",
   MANAGE_GRADES: "manage:grades",
+  MANAGE_MESSAGES: "manage:messages",
 
   VIEW_LOGS: "view:logs",
   MANAGE_LOGS: "manage:logs",

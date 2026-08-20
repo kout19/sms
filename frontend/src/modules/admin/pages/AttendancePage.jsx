@@ -1,5 +1,5 @@
 import { Clock, CircleCheck, CircleX, Calendar } from "lucide-react";
-import AttendanceCard from "../cards/AttendanceCard";
+import AttendanceCard from "../components/cards/AttendanceCard";
 import { useState, useEffect } from "react";
 
 const attendanceData = [

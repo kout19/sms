@@ -7,14 +7,17 @@ import AuthProvider from "./providers/AuthProvider.jsx";
 import { store } from "./store/store.js";
 import { navigationConfig } from "./shared/config/navigationConfig.js";
 import { validateNavConfig } from "./shared/utils/validateNavConfig.js";
+import QueryProvider from "./providers/QueryProvider.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <AuthProvider>
-        {validateNavConfig(navigationConfig)}
-        <App />
-      </AuthProvider>
+      <QueryProvider>
+        <AuthProvider>
+          {validateNavConfig(navigationConfig)}
+          <App />
+        </AuthProvider>
+      </QueryProvider>
     </Provider>
   </StrictMode>,
 );

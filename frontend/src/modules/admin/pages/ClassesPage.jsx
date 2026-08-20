@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import ClassStateCard from "../cards/ClassStateCard";
+import ClassStateCard from "../components/cards/ClassStateCard";
 
 const classesData = [
   {
