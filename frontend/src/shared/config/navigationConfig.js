@@ -474,8 +474,8 @@ export const navigationConfig = {
             id: "department",
             label: "Departments",
             icon: "building",
-            path: "/admin/classes",
-            permission: PERMISSIONS.MANAGE_CLASSES,
+            path: "/admin/departments",
+            permission: PERMISSIONS.MANAGE_DEPARTMENTS,
             children: [
               {
                 id: "department-list",
@@ -495,20 +495,20 @@ export const navigationConfig = {
             id: "accountant",
             label: "Accountant",
             icon: "dollar-sign",
-            path: "/admin/accountant",
+            path: "/admin/accountants",
             permission: PERMISSIONS.MANAGE_ATTENDANCE,
             children: [
               {
                 id: "accountant-list",
                 label: "All Accountants",
                 icon: "list",
-                path: "/admin/accountant",
+                path: "/admin/accountants",
               },
               {
                 id: "accountant-add",
                 label: "Add Accountant",
                 icon: "plus",
-                path: "/admin/accountant/add",
+                path: "/admin/accountants/add",
               },
             ],
           },

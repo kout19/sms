@@ -7,7 +7,7 @@ const BASE = "/admin/teachers";
 
 export const getAllTeachers = async (filters = {}) => {
   const response = await apiAxios.get(BASE, { params: filters });
-  return response.data.data; // assumes backend wraps as { data: [...] } - confirm against actual response shape
+  return response.data.data; 
 };
 
 export const getTeacherById = async (id) => {

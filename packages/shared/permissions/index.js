@@ -24,6 +24,7 @@ const PERMISSIONS_RAW = {
 
   MANAGE_PLANS: "manage:plans",
   MANGE_LOGS: "manage:logs",
+  MANAGE_DEPARTMENTS: "manage:departments",
 
   MANAGE_SECURITY: "manage:security",
   MANGE_INTEGRATIONS: "manage:integrations",

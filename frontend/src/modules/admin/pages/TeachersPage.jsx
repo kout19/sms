@@ -38,7 +38,7 @@ const teachersData = [
 ];
 
 const TeachersPage = () => {
-  // const [data: teachers =[], isLoading, isError] = useTeachers();
+  const {data: teachers =[], isLoading, isError, error, refetch} = useTeachers();
   const createTeacher =useCreateTeacher();
   const deleteTeacher = useDeleteTeacher();
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,6 +53,98 @@ const TeachersPage = () => {
     setSelectedClass(val);
     setCurrentPage(1);
   };
+
+
+   if (isLoading) {
+    return (
+      <div className="p-6">
+        <p>Loading teachers...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <p className="text-red-600">
+          Failed to load teachers: {error?.message}
+        </p>
+
+        <button
+          onClick={() => refetch()}
+          className="mt-3 rounded bg-blue-600 px-4 py-2 text-white"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // return (
+  //   <div className="p-6">
+  //     <div className="mb-6 flex items-center justify-between">
+  //       <div>
+  //         <h1 className="text-2xl font-bold">Teachers</h1>
+  //         <p className="text-slate-500">
+  //           Manage teachers in your school.
+  //         </p>
+  //       </div>
+
+  //       <button
+  //         onClick={() => refetch()}
+  //         className="rounded-lg border px-4 py-2"
+  //       >
+  //         Refresh
+  //       </button>
+  //     </div>
+
+  //     {teachers.length === 0 ? (
+  //       <div className="rounded-lg border p-8 text-center">
+  //         <p className="text-slate-500">
+  //           No teachers found.
+  //         </p>
+  //       </div>
+  //     ) : (
+  //       <div className="overflow-x-auto rounded-lg border">
+  //         <table className="w-full">
+  //           <thead>
+  //             <tr className="border-b bg-slate-50 text-left">
+  //               <th className="px-4 py-3">Name</th>
+  //               <th className="px-4 py-3">Email</th>
+  //               <th className="px-4 py-3">Phone</th>
+  //               <th className="px-4 py-3">Status</th>
+  //             </tr>
+  //           </thead>
+
+  //           <tbody>
+  //             {teachers.map((teacher) => (
+  //               <tr key={teacher.id} className="border-b">
+  //                 <td className="px-4 py-3">
+  //                   {teacher.firstName} {teacher.lastName}
+  //                 </td>
+
+  //                 <td className="px-4 py-3">
+  //                   {teacher.email}
+  //                 </td>
+
+  //                 <td className="px-4 py-3">
+  //                   {teacher.phone || "—"}
+  //                 </td>
+
+  //                 <td className="px-4 py-3">
+  //                   {teacher.isActive ? "Active" : "Inactive"}
+  //                 </td>
+  //               </tr>
+  //             ))}
+  //           </tbody>
+  //         </table>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
+
+
+
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen w-full">
@@ -101,11 +193,13 @@ const TeachersPage = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {teachersData.map((teacher, index) => (
+        {teachers.map((teacher, index) => (
+
           <TeacherCard
             key={index}
-            name={teacher.name}
-            courses={teacher.courses}
+            id={teacher.id}
+            name={teacher.firstName + " " + teacher.lastName}
+            // courses={teacher.courses}
             email={teacher.email}
             phone={teacher.phone}
             activeClasses={teacher.activeClasses}
