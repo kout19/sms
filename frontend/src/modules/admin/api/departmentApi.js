@@ -1,10 +1,4 @@
-// frontend/src/modules/admin/api/departmentApi.js
-//
-// MOCK DATA for now - backend/modules/departments/ doesn't exist yet.
-// When it's built (follow the same routes/controller/service/validation
-// pattern as teachers), swap the function bodies below for real apiAxios
-// calls. Nothing in useDepartments.js or the components needs to change
-// when that happens - same contract, same shape.
+
 
 import apiAxios from "../../../shared/api/axios";
 const MOCK_DEPARTMENTS = [
@@ -126,6 +120,7 @@ export const createDepartment = async (payload) => {
     ...payload,
   };
 };
+
 
 export const toggleDepartmentStatus = async (id) => {
   const dept = MOCK_DEPARTMENTS.find((d) => d.id === id);

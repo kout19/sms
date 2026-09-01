@@ -15,6 +15,7 @@ export const getTeacherById = async (id) => {
   return response.data.data;
 };
 
+
 export const createTeacher = async (payload) => {
   const response = await apiAxios.post(BASE, payload);
   return response.data.data;

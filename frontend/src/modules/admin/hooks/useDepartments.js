@@ -10,6 +10,8 @@ export function useDepartments(filters = {}) {
   });
 }
 
+
+
 export function useCreateDepartment() {
   const queryClient = useQueryClient();
   return useMutation({
