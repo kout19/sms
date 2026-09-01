@@ -10,6 +10,7 @@ import Attendance from "../pages/AttendancePage";
 import DepartmentsPage from "../pages/DepartmentsPage";
 import AccountantsPage from "../pages/AccountantsPage";
 import ParentsPage from "../pages/ParentsPage";
+import SubjectsPage from "../pages/SubjectsPage";
 
 
 
@@ -35,6 +36,7 @@ const AdminRoutes = () => {
             <Route path="departments" element={<DepartmentsPage />} />
             <Route path="accountants" element={<AccountantsPage />} />
             <Route path="parents" element={<ParentsPage />} />
+            <Route path="subjects" element={<SubjectsPage />} />
           </Route>
         </Routes>
       }
