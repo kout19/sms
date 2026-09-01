@@ -28,4 +28,5 @@ export const reportKeys = makeResourceKeys("reports");
 export const documentKeys = makeResourceKeys("documents");
 export const departmentKeys = makeResourceKeys("departments");
 export const rolePermissionKeys = makeResourceKeys("role-permissions");
-export const accounatantKeys = makeResourceKeys("accountants");
+export const accountantKeys = makeResourceKeys("accountants");
+export const transactionKeys = makeResourceKeys("transactions");
