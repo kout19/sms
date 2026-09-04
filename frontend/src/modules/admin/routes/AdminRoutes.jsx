@@ -11,7 +11,7 @@ import DepartmentsPage from "../pages/DepartmentsPage";
 import AccountantsPage from "../pages/AccountantsPage";
 import ParentsPage from "../pages/ParentsPage";
 import SubjectsPage from "../pages/SubjectsPage";
-
+import ExamsPage from "../pages/ExamsPage";
 
 
 
@@ -37,6 +37,7 @@ const AdminRoutes = () => {
             <Route path="accountants" element={<AccountantsPage />} />
             <Route path="parents" element={<ParentsPage />} />
             <Route path="subjects" element={<SubjectsPage />} />
+            <Route path="exams" element={<ExamsPage />} />
           </Route>
         </Routes>
       }
