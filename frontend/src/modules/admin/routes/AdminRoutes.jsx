@@ -1,17 +1,17 @@
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "../../../shared/utils";
-import AdminDashboard from "../pages/AdminDashboard";
+import AdminDashboard from "../dashboard/pages/AdminDashboard";
  import AdminLayout from "../layouts/AdminLayout";
-import Settings from "../pages/SettingsPage";
-import Students from "../pages/StudentsPage";
-import Teachers from "../pages/TeachersPage";
-import Classes from "../pages/ClassesPage";
-import Attendance from "../pages/AttendancePage";
-import DepartmentsPage from "../pages/DepartmentsPage";
-import AccountantsPage from "../pages/AccountantsPage";
-import ParentsPage from "../pages/ParentsPage";
-import SubjectsPage from "../pages/SubjectsPage";
-import ExamsPage from "../pages/ExamsPage";
+import Settings from "../settings/pages/SettingsPage";
+import Students from "../students/pages/StudentsPage";
+import Teachers from "../teachers/pages/TeachersPage";
+import Classes from "../classes/pages/ClassesPage";
+import Attendance from "../attendance/pages/AttendancePage";
+import DepartmentsPage from "../departments/pages/DepartmentsPage";
+import AccountantsPage from "../accountants/pages/AccountantsPage";
+import ParentsPage from "../parents/pages/ParentsPage";
+import SubjectsPage from "../subjects/pages/SubjectsPage";
+import ExamsPage from "../exams/pages/ExamsPage";
 
 
 
