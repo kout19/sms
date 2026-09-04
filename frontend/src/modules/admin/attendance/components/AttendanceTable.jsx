@@ -30,6 +30,43 @@ function SortHeader({ label, sortKey, activeSort, onSort }) {
     </button>
   );
 }
+function BulkActionBar({ selectedCount, onApply, onClear }) {
+  const [status, setStatus] = useState("present");
+
+  return (
+    <div className="flex items-center justify-between px-6 py-3 bg-indigo-50 border-b border-indigo-100">
+      <span className="text-sm font-medium text-indigo-700">
+        {selectedCount} selected
+      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">Set all to:</span>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm bg-white"
+        >
+          {Object.entries(ATTENDANCE_STATUSES).map(([key, s]) => (
+            <option key={key} value={key}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => onApply(status)}
+          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium"
+        >
+          Apply
+        </button>
+        <button
+          onClick={onClear}
+          className="text-sm text-gray-500 hover:text-gray-700"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function AttendanceTable({
   records,
@@ -45,6 +82,7 @@ export default function AttendanceTable({
   onReset,
   onSetStatus,
   onAction,
+  onBulkApply,
 }) {
   const [selected, setSelected] = useState([]);
   const [sort, setSort] = useState({ key: "studentName", dir: "asc" });
@@ -126,6 +164,13 @@ export default function AttendanceTable({
       </div>
 
       <div className="overflow-x-auto">
+        {selected.length > 0 && (
+          <BulkActionBar
+            selectedCount={selected.length}
+            onSetStatus={onSetStatus}
+            onBulkApply={onBulkApply}
+          />
+        )}
         <div className="min-w-[900px]">
           <div className="grid grid-cols-[0.3fr_1.6fr_1fr_1fr_0.9fr_1fr_1.4fr_0.5fr] gap-4 px-6 py-3 items-center border-b border-gray-100">
             <input

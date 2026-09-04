@@ -12,7 +12,10 @@ const MOCK_TREND = [
 ];
 
 const MOCK_BREAKDOWN = {
-  present: 14, absent: 3, late: 3, excused: 2,
+  present: 14,
+  absent: 3,
+  late: 3,
+  excused: 2,
   byGrade: [
     { grade: "Grade 10", rate: 71 },
     { grade: "Grade 11", rate: 71 },
@@ -21,14 +24,78 @@ const MOCK_BREAKDOWN = {
 };
 
 const MOCK_RECORDS = [
-  { id: "r1", studentName: "Abigail Lee", studentCode: "STD-018", className: "Grade 12A", status: "present", checkIn: "08:15 AM", remarks: null },
-  { id: "r2", studentName: "Alexander Lewis", studentCode: "STD-017", className: "Grade 12A", status: "absent", checkIn: null, remarks: null },
-  { id: "r3", studentName: "Amelia Martin", studentCode: "STD-013", className: "Grade 11B", status: "present", checkIn: "08:10 AM", remarks: null },
-  { id: "r4", studentName: "Aria King", studentCode: "STD-022", className: "Grade 12B", status: "present", checkIn: "08:03 AM", remarks: null },
-  { id: "r5", studentName: "Benjamin Harris", studentCode: "STD-012", className: "Grade 11B", status: "present", checkIn: "07:52 AM", remarks: null },
-  { id: "r6", studentName: "Caden Scott", studentCode: "STD-021", className: "Grade 12B", status: "present", checkIn: "07:59 AM", remarks: null },
-  { id: "r7", studentName: "Charlotte White", studentCode: "STD-011", className: "Grade 11A", status: "late", checkIn: "08:45 AM", remarks: "Traffic congestion" },
-  { id: "r8", studentName: "Emma Johnson", studentCode: "STD-001", className: "Grade 10A", status: "present", checkIn: "07:55 AM", remarks: null },
+  {
+    id: "r1",
+    studentName: "Abigail Lee",
+    studentCode: "STD-018",
+    className: "Grade 12A",
+    status: "present",
+    checkIn: "08:15 AM",
+    remarks: null,
+  },
+  {
+    id: "r2",
+    studentName: "Alexander Lewis",
+    studentCode: "STD-017",
+    className: "Grade 12A",
+    status: "absent",
+    checkIn: null,
+    remarks: null,
+  },
+  {
+    id: "r3",
+    studentName: "Amelia Martin",
+    studentCode: "STD-013",
+    className: "Grade 11B",
+    status: "present",
+    checkIn: "08:10 AM",
+    remarks: null,
+  },
+  {
+    id: "r4",
+    studentName: "Aria King",
+    studentCode: "STD-022",
+    className: "Grade 12B",
+    status: "present",
+    checkIn: "08:03 AM",
+    remarks: null,
+  },
+  {
+    id: "r5",
+    studentName: "Benjamin Harris",
+    studentCode: "STD-012",
+    className: "Grade 11B",
+    status: "present",
+    checkIn: "07:52 AM",
+    remarks: null,
+  },
+  {
+    id: "r6",
+    studentName: "Caden Scott",
+    studentCode: "STD-021",
+    className: "Grade 12B",
+    status: "present",
+    checkIn: "07:59 AM",
+    remarks: null,
+  },
+  {
+    id: "r7",
+    studentName: "Charlotte White",
+    studentCode: "STD-011",
+    className: "Grade 11A",
+    status: "late",
+    checkIn: "08:45 AM",
+    remarks: "Traffic congestion",
+  },
+  {
+    id: "r8",
+    studentName: "Emma Johnson",
+    studentCode: "STD-001",
+    className: "Grade 10A",
+    status: "present",
+    checkIn: "07:55 AM",
+    remarks: null,
+  },
 ];
 
 export const getAttendanceTrend = async () => {
@@ -48,7 +115,11 @@ export const getAttendanceTrend = async () => {
 export const getTodayBreakdown = async () => {
   // TODO: const response = await apiAxios.get(`${BASE}/today-breakdown`); return response.data.data;
   await new Promise((r) => setTimeout(r, 200));
-  const total = MOCK_BREAKDOWN.present + MOCK_BREAKDOWN.absent + MOCK_BREAKDOWN.late + MOCK_BREAKDOWN.excused;
+  const total =
+    MOCK_BREAKDOWN.present +
+    MOCK_BREAKDOWN.absent +
+    MOCK_BREAKDOWN.late +
+    MOCK_BREAKDOWN.excused;
   return { ...MOCK_BREAKDOWN, total };
 };
 
@@ -59,7 +130,9 @@ export const getAttendanceRecords = async (filters = {}) => {
   if (filters.search) {
     const q = filters.search.toLowerCase();
     results = results.filter(
-      (r) => r.studentName.toLowerCase().includes(q) || r.studentCode.toLowerCase().includes(q)
+      (r) =>
+        r.studentName.toLowerCase().includes(q) ||
+        r.studentCode.toLowerCase().includes(q),
     );
   }
   if (filters.classFilter && filters.classFilter !== "all") {
@@ -85,4 +158,42 @@ export const addRemark = async (id, remark) => {
   if (!record) throw new Error("Record not found");
   record.remarks = remark;
   return record;
+};
+
+export const getAttendanceStats = async () => {
+  // TODO: const response = await apiAxios.get(`${BASE}/stats`); return response.data.data;
+  await new Promise((r) => setTimeout(r, 200));
+  const { present, absent, late, excused } = MOCK_BREAKDOWN;
+  const total = present + absent + late + excused;
+  return {
+    presentToday: present,
+    totalStudents: total,
+    absentToday: absent,
+    absentRate: total ? Math.round((absent / total) * 100) : 0,
+    lateArrivals: late,
+    lateCutoff: "08:30 AM",
+    attendanceRate: total ? Math.round(((present + late) / total) * 100) : 0,
+  };
+};
+
+// Used by the Mark Attendance modal - sets a different status per student in one save
+export const bulkMarkAttendance = async (date, entries) => {
+  // TODO: const response = await apiAxios.post(`${BASE}/bulk-mark`, { date, entries }); return response.data.data;
+  await new Promise((r) => setTimeout(r, 300));
+  entries.forEach(({ id, status }) => {
+    const record = MOCK_RECORDS.find((r) => r.id === id);
+    if (record) record.status = status;
+  });
+  return entries;
+};
+
+// Used by the table's selection bar - sets the SAME status for many selected rows
+export const bulkUpdateStatus = async (ids, status) => {
+  // TODO: const response = await apiAxios.patch(`${BASE}/bulk-status`, { ids, status }); return response.data.data;
+  await new Promise((r) => setTimeout(r, 200));
+  ids.forEach((id) => {
+    const record = MOCK_RECORDS.find((r) => r.id === id);
+    if (record) record.status = status;
+  });
+  return ids;
 };
