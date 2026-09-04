@@ -1,5 +1,5 @@
 // We are creating the query keys for the React Query library, used for caching and invalidating queries.
-function makeResourceKeys(resource) {
+export function makeResourceKeys(resource) {
   return {
     all: [resource],
     lists: () => [resource, "list"],
@@ -30,3 +30,4 @@ export const departmentKeys = makeResourceKeys("departments");
 export const rolePermissionKeys = makeResourceKeys("role-permissions");
 export const accountantKeys = makeResourceKeys("accountants");
 export const transactionKeys = makeResourceKeys("transactions");
+
