@@ -1,5 +1,5 @@
 import StatCard from "@shared/components/StatCard";
-import { useAcademicOverview } from "../hooks/useAcademicReports";
+import { useAcademicOverview } from "../../hooks/useAcademicReports";
 
 export default function ReportSummaryCards({ filters }) {
   const { data, isLoading } = useAcademicOverview(filters);

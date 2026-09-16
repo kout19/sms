@@ -1,26 +1,20 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
 import Avatar from "@shared/components/Avatar";
-import { STATUS_STYLES, getScoreBarColor } from "@shared/components/gradeConstants";
-import { useDetailedRecords } from "../hooks/useAcademicReports";
+import { ATTENDANCE_STATUS_STYLES, getAttendanceBarColor } from "../../utils/attendanceStatusConstants";
+import { useDetailedAttendanceRecords } from "../../hooks/useAttendanceReport";
 
-function TrendIcon({ trend }) {
-  if (trend === "up")
-    return <TrendingUp className="w-4 h-4 text-emerald-500" />;
-  if (trend === "down")
-    return <TrendingDown className="w-4 h-4 text-rose-500" />;
-  return <span className="text-gray-300">—</span>;
-}
-
-export default function DetailedRecordsTable({ filters }) {
-  const { data: records = [], isLoading } = useDetailedRecords(filters);
+export default function DetailedAttendanceRecordsTable({ filters }) {
+  const { data: records = [], isLoading } =
+    useDetailedAttendanceRecords(filters);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
         <h2 className="text-lg font-semibold text-gray-900">
-          Detailed Academic Records
+          Detailed Attendance Records
         </h2>
-        <span className="text-sm text-gray-400">{records.length} records</span>
+        <span className="text-sm text-gray-400">
+          {records.length} students · Term 1 (43 school days)
+        </span>
       </div>
 
       {isLoading ? (
@@ -28,23 +22,23 @@ export default function DetailedRecordsTable({ filters }) {
       ) : (
         <div className="overflow-x-auto">
           <div className="min-w-[900px]">
-            <div className="grid grid-cols-[1.8fr_1.1fr_1.4fr_1.6fr_0.7fr_1fr_0.6fr] gap-4 px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
+            <div className="grid grid-cols-[1.8fr_1.1fr_0.8fr_0.8fr_0.8fr_1.4fr_1fr] gap-4 px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
               <span>Student</span>
               <span>Class</span>
-              <span>Subject</span>
-              <span>Score</span>
-              <span>Grade</span>
+              <span>Present</span>
+              <span>Absent</span>
+              <span>Late</span>
+              <span>Rate</span>
               <span>Status</span>
-              <span>Trend</span>
             </div>
 
             <div>
               {records.map((r) => {
-                const style = STATUS_STYLES[r.status];
+                const style = ATTENDANCE_STATUS_STYLES[r.status];
                 return (
                   <div
                     key={r.id}
-                    className="grid grid-cols-[1.8fr_1.1fr_1.4fr_1.6fr_0.7fr_1fr_0.6fr] gap-4 px-6 py-3.5 items-center border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
+                    className="grid grid-cols-[1.8fr_1.1fr_0.8fr_0.8fr_0.8fr_1.4fr_1fr] gap-4 px-6 py-3.5 items-center border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar name={r.studentName} colorful />
@@ -55,26 +49,27 @@ export default function DetailedRecordsTable({ filters }) {
                         <p className="text-xs text-gray-400">{r.studentCode}</p>
                       </div>
                     </div>
-
                     <span className="text-sm text-gray-600">{r.className}</span>
-                    <span className="text-sm text-gray-600">{r.subject}</span>
-
+                    <span className="text-sm font-semibold text-emerald-600">
+                      {r.present}
+                    </span>
+                    <span className="text-sm font-semibold text-rose-500">
+                      {r.absent}
+                    </span>
+                    <span className="text-sm font-semibold text-amber-500">
+                      {r.late}
+                    </span>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-[80px]">
                         <div
-                          className={`h-full rounded-full ${getScoreBarColor(r.score)}`}
-                          style={{ width: `${r.score}%` }}
+                          className={`h-full rounded-full ${getAttendanceBarColor(r.rate)}`}
+                          style={{ width: `${r.rate}%` }}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-gray-900 w-7">
-                        {r.score}
+                      <span className="text-sm font-semibold text-gray-900 w-9">
+                        {r.rate}%
                       </span>
                     </div>
-
-                    <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-gray-100 text-xs font-semibold text-gray-700">
-                      {r.grade}
-                    </span>
-
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium w-fit ${style.bg} ${style.text}`}
                     >
@@ -83,8 +78,6 @@ export default function DetailedRecordsTable({ filters }) {
                       />
                       {style.label}
                     </span>
-
-                    <TrendIcon trend={r.trend} />
                   </div>
                 );
               })}

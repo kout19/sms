@@ -1,4 +1,4 @@
-import { usePassFailDistribution } from "../hooks/useAcademicReports";
+import { usePassFailDistribution } from "../../hooks/useAcademicReports";
 
 export default function PassFailDistributionCard({ filters }) {
   const { data, isLoading } = usePassFailDistribution(filters);

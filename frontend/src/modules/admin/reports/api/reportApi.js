@@ -1,5 +1,6 @@
 import apiAxios from "@shared/api/axios"; // or your custom API client instance
-import {getLetterGrade, getPerformanceStatus} from "@shared/components/gradeConstants";
+import { getPerformanceStatus} from "../utils/academicGradingConstant"
+import { getLetterGrade } from "@shared/utils/grading";
 
 const BASE = "/admin/reports/academic-report";
 
@@ -239,8 +240,7 @@ const MOCK_DETAILED_RECORDS = [
 }));
 
 
-export const reportsApi = {
-  getSchoolHealthOverview: async () => {
+export const getSchoolHealthOverview =async () => {
     // const response = await apiAxios.get("/reports/school-health");
     // return response.data.data;:
     await new Promise((res) => setTimeout(res, 300));
@@ -256,10 +256,10 @@ export const reportsApi = {
       feeCollection: "81%",
       outstandingFees: "$92.4K outstanding",
     };
-  },
+  };
   // Add to features/reports/api/reportsApi.js
 
-  getQuickInsights: async () => {
+  export const getQuickInsights=async () => {
     await new Promise((res) => setTimeout(res, 300));
     return [
       {
@@ -295,8 +295,8 @@ export const reportsApi = {
         action: "/reports/academic/top-performers",
       },
     ];
-  },
-};
+  };
+
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
 
 export const getAcademicOverview = async (filters = {}) => {

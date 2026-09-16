@@ -1,19 +1,49 @@
 import { useState } from "react";
-import {Download } from "lucide-react";
-import ReportFilterBar from "../components/ReportFilterBar";
-import ReportSummaryCards from "../cards/ReportSummaryCards";
+import { Download } from "lucide-react";
+import ReportFilterBar from "../../shared/components/ReportFilterBar";
+import ReportSummaryCards from "../cards/academic-reports/AcademicReportSummaryCards";
 import ScoreTrendChart from "../components/ScoreTrendChart";
-import PassFailDistributionCard from "../cards/PassFailDistributionCard";
+import PassFailDistributionCard from "../cards/academic-reports/PassFailDistributionCard";
 import SubjectPerformanceChart from "../components/SubjectPerformanceChart";
 import GradePerformanceChart from "../components/GradePerformanceChart";
 import StudentScoreList from "../components/StudentScoreList";
+import DashboardHeader from "../../shared/components/DashboardHeader";
 import {
   useTopPerformers,
   useAtRiskStudents,
 } from "../hooks/useAcademicReports";
-import DetailedRecordsTable from "../components/DetailedRecordsTable";
+import DetailedRecordsTable from "../components/academic-reports/DetailedRecordsTable";
 
 const DEFAULT_FILTERS = { year: "2026-2027", term: "all", grade: "all" };
+const academicFilters = [
+  {
+    name: "year",
+    type: "select",
+    options: [
+      { value: "2026-2027", label: "2026-2027" },
+      { value: "2025-2026", label: "2025-2026" },
+    ],
+  },
+  {
+    name: "term",
+    type: "select",
+    options: [
+      { value: "all", label: "All Terms" },
+      { value: "term1", label: "Term 1" },
+      { value: "term2", label: "Term 2" },
+    ],
+  },
+  {
+    name: "grade",
+    type: "select",
+    options: [
+      { value: "all", label: "All Grades" },
+      { value: "G10", label: "Grade 10" },
+      { value: "G11", label: "Grade 11" },
+      { value: "G12", label: "Grade 12" },
+    ],
+  },
+];
 
 export default function AcademicReportsPage() {
   const [pendingFilters, setPendingFilters] = useState(DEFAULT_FILTERS);
@@ -30,26 +60,19 @@ export default function AcademicReportsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold ">Accademic Performance Report</h1>
-          <p className="text-sm text-slate-500">
-            Student grades, subject analysis, and performance trends for each
-            term
-          </p>
-        </div>
-
-        <div className="bg-white border border-gray-100 shadow-sm hover:shadow-md rounded-lg flex items-center gap-2 px-4 py-2  cursor-pointer">
-          <Download className="w-5 h-5" />
-          <span> Export Report</span>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Academic Performance Report"
+        subtitle="Student grades, subject analysis, and performance trends for each term"
+        icon={Download}
+        accent="white"
+      />
 
       <ReportFilterBar
         pendingFilters={pendingFilters}
         onChange={setPendingFilters}
         onApply={handleApply}
         onReset={handleReset}
+        filters={academicFilters}
       />
 
       <ReportSummaryCards filters={appliedFilters} />

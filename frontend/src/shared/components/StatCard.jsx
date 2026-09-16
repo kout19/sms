@@ -46,6 +46,7 @@ export default function StatCard({
     emerald: "border-l-emerald-500",
     rose: "border-l-rose-500",
     amber: "border-l-amber-500",
+    purple: "border-l-purple-500",
   };
   const accentTrendClasses = {
     indigo: "text-indigo-600",
