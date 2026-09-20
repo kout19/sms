@@ -17,6 +17,9 @@ import AttencdanceReportsPage from "../reports/pages/AttendanceReportsPage";
 import AccademicReportsPage from "../reports/pages/AccademicReportsPage";
 import FinancialReportsPage from "../reports/pages/FinancialReportsPage";
 import MessagesPage from "../messages/pages/MessagesPage";
+import Announcements from "../announcements/pages/AnnouncementsPage";
+import AnnouncementDetailPage from "../announcements/pages/AnnouncementDetailPage";
+import AnnouncementFormPage from "../announcements/pages/AnnouncementFormPage";
 
 /**
  * Admin Routes - Protected routes for admin module
@@ -55,6 +58,10 @@ const AdminRoutes = () => {
               element={<FinancialReportsPage />}
             />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="announcements" element={<Announcements />} />
+            <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
+            <Route path ="announcements/new" element={<AnnouncementFormPage />} />
+            <Route path="announcements/:id/edit" element={<AnnouncementFormPage />} />
           </Route>
         </Routes>
       }
