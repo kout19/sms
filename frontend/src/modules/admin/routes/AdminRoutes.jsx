@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "../../../shared/utils";
 import AdminDashboard from "../dashboard/pages/AdminDashboard";
 import AdminLayout from "../layouts/AdminLayout";
-import Settings from "../settings/pages/SettingsPage";
 import Students from "../students/pages/StudentsPage";
 import Teachers from "../teachers/pages/TeachersPage";
 import Classes from "../classes/pages/ClassesPage";
@@ -20,6 +19,10 @@ import MessagesPage from "../messages/pages/MessagesPage";
 import Announcements from "../announcements/pages/AnnouncementsPage";
 import AnnouncementDetailPage from "../announcements/pages/AnnouncementDetailPage";
 import AnnouncementFormPage from "../announcements/pages/AnnouncementFormPage";
+import Settingspage from "../settings/pages/SettingsPage";
+import UserManagementSettingsPage from "../settings/pages/UserManagementSettingsPage";
+import RolePermissionsSettingsPage from "../settings/pages/RolePermissionsSettingsPage";
+import GeneralSettingsPage from "../settings/pages/GeneralSettingsPage";
 
 /**
  * Admin Routes - Protected routes for admin module
@@ -34,7 +37,6 @@ const AdminRoutes = () => {
         <Routes>
           <Route path="/" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="settings" element={<Settings />} />
             <Route path="students" element={<Students />} />
             <Route path="teachers" element={<Teachers />} />
             <Route path="classes" element={<Classes />} />
@@ -59,9 +61,22 @@ const AdminRoutes = () => {
             />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="announcements" element={<Announcements />} />
-            <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
-            <Route path ="announcements/new" element={<AnnouncementFormPage />} />
-            <Route path="announcements/:id/edit" element={<AnnouncementFormPage />} />
+            <Route
+              path="announcements/:id"
+              element={<AnnouncementDetailPage />}
+            />
+            <Route
+              path="announcements/new"
+              element={<AnnouncementFormPage />}
+            />
+            <Route
+              path="announcements/:id/edit"
+              element={<AnnouncementFormPage />}
+            />
+            <Route path="settings" element={<Settingspage />} />
+            <Route path = "settings/general" element={<GeneralSettingsPage />} />
+            <Route path = "settings/user-management" element={<UserManagementSettingsPage />} />
+            <Route path = "settings/roles-permissions" element={<RolePermissionsSettingsPage />} />
           </Route>
         </Routes>
       }

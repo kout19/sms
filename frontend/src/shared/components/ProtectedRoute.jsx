@@ -12,8 +12,7 @@ const ProtectedRoute = ({ element, allowedRoles = [] }) => {
 
   if (
     allowedRoles.length > 0 &&
-    // currentRole !== "super-admin" &&
-    !allowedRoles.includes(currentRole)
+ !allowedRoles.includes(currentRole)
   ) {
     return <Navigate to="/unauthorized" replace />;
   }
