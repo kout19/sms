@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Settings } from "lucide-react";
 import {
   useGeneralSettings,
   useUpdateGeneralSettings,
@@ -9,6 +10,7 @@ import LocalizationSection from "../components/LocalizationSection";
 import AttendanceSettingsSection from "../components/AttendanceSettingsSection";
 import NotificationPreferencesSection from "../components/NotificationPreferencesSection";
 import SecuritySettingsSection from "../components/SecuritySettingsSection";
+import DashboardHeader from "../../shared/components/DashboardHeader";
 
 export default function GeneralSettingsPage() {
   const { data, isLoading } = useGeneralSettings();
@@ -27,6 +29,12 @@ export default function GeneralSettingsPage() {
 
   return (
     <div className="bg-gray-50 space-y-6 min-h-screen p-6 ">
+      <DashboardHeader
+        title="General Settings"
+        subtitle="Manage your school configuration and access control."
+        icon={Settings}
+    
+      />
       <SchoolInformationSection
         data={formData.school}
         onChange={(school) => setFormData({ ...formData, school })}
