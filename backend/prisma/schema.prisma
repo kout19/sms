@@ -1,9 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [pg_trgm]
 }
 enum UserRole {
   super_admin
@@ -22,8 +24,9 @@ model School {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  users     User[]
-  classes   Class[]
+  users            User[]
+  classes          Class[]
+  teacherProfiles  TeacherProfile[]
 
   @@index([isActive])
   @@map("schools")
@@ -52,10 +55,14 @@ model User {
 
   @@index([schoolId])
   @@index([schoolId, role])
+  @@index([schoolId, role, createdAt])
   @@index([role])
   @@index([createdAt])
   @@index([role], map: "idx_users_role")
   @@index([schoolId], map: "idx_users_school_id")
+  @@index([firstName(ops: raw("gin_trgm_ops"))], map: "users_first_name_trgm_idx", type: Gin)
+  @@index([lastName(ops: raw("gin_trgm_ops"))], map: "users_last_name_trgm_idx", type: Gin)
+  @@index([email(ops: raw("gin_trgm_ops"))], map: "users_email_trgm_idx", type: Gin)
   @@map("users")
 }
 
@@ -63,6 +70,8 @@ model TeacherProfile {
   id              String   @id @default(uuid()) @db.Uuid
   userId          String   @unique @db.Uuid
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId        String   @db.Uuid
+  school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   departmentId    String?  @db.Uuid
   hireDate        DateTime?
@@ -72,6 +81,9 @@ model TeacherProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  @@unique([schoolId, employeeId])
+  @@index([schoolId])
+  @@index([employeeId(ops: raw("gin_trgm_ops"))], map: "teacher_profiles_employee_trgm_idx", type: Gin)
   @@map("teacher_profiles")
 }
 
@@ -99,6 +111,7 @@ model StudentProfile {
   updatedAt       DateTime @updatedAt
 
   @@index([classId])
+  @@index([admissionNo(ops: raw("gin_trgm_ops"))], map: "student_profiles_admission_trgm_idx", type: Gin)
   @@map("student_profiles")
 }
 

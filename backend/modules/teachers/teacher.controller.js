@@ -1,89 +1,141 @@
-// backend/modules/teachers/teacher.controller.js
 const teacherService = require("./teacher.service");
 const {
   validateCreateTeacher,
   validateUpdateTeacher,
+  validationErrorItems,
 } = require("./teacher.validation");
 const AppError = require("../../utils/AppError");
 
-// req.tenant.schoolId is set by tenantScope middleware, derived from the
-// authenticated user's JWT/session - never trust req.body.schoolId or any
-// client-supplied tenant identifier.
+const requireSchoolId = (req) => {
+  if (!req.tenant?.schoolId) {
+    throw new AppError("Your account is not assigned to a school", 403);
+  }
+  return req.tenant.schoolId;
+};
+
+const rejectValidation = (error) => {
+  throw new AppError("Validation failed", 400, validationErrorItems(error));
+};
 
 exports.list = async (req, res, next) => {
   try {
-    const teachers = await teacherService.listTeachers(req.tenant.schoolId);
-    res.json({ data: teachers });
-  } catch (err) {
-    next(err);
+    const schoolId = requireSchoolId(req);
+    const { search, classId, isActive, page, limit } = req.query;
+    const result = await teacherService.listTeachers(schoolId, {
+      search,
+      classId,
+      isActive: isActive === undefined ? undefined : isActive === "true",
+      page,
+      limit,
+    });
+    res.json({
+      success: true,
+      message: "Teachers retrieved",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.listClasses = async (req, res, next) => {
+  try {
+    const schoolId = requireSchoolId(req);
+    const classes = await teacherService.listClassesForSchool(schoolId);
+    res.json({
+      success: true,
+      message: "Classes retrieved",
+      data: classes,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 exports.getOne = async (req, res, next) => {
   try {
-    const teacher = await teacherService.getTeacherById(
-      req.tenant.schoolId,
-      req.params.id,
-    );
+    const schoolId = requireSchoolId(req);
+    const teacher = await teacherService.getTeacherById(schoolId, req.params.id);
     if (!teacher) return next(new AppError("Teacher not found", 404));
-    res.json({ data: teacher });
-  } catch (err) {
-    next(err);
+    res.json({
+      success: true,
+      message: "Teacher retrieved",
+      data: teacher,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 exports.create = async (req, res, next) => {
   try {
+    const schoolId = requireSchoolId(req);
     const { error, value } = validateCreateTeacher(req.body);
-    if (error) return next(new AppError(error.details[0].message, 400));
-    const teacher = await teacherService.createTeacher(
-      req.tenant.schoolId,
-      value,
-    );
-    res.status(201).json({ data: teacher });
-  } catch (err) {
-    next(err);
+    if (error) rejectValidation(error);
+    const teacher = await teacherService.createTeacher(schoolId, value);
+    res.status(201).json({
+      success: true,
+      message: "Teacher created",
+      data: teacher,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 exports.update = async (req, res, next) => {
   try {
+    const schoolId = requireSchoolId(req);
     const { error, value } = validateUpdateTeacher(req.body);
-    if (error) return next(new AppError(error.details[0].message, 400));
+    if (error) rejectValidation(error);
     const teacher = await teacherService.updateTeacher(
-      req.tenant.schoolId,
+      schoolId,
       req.params.id,
       value,
     );
     if (!teacher) return next(new AppError("Teacher not found", 404));
-    res.json({ data: teacher });
-  } catch (err) {
-    next(err);
+    res.json({
+      success: true,
+      message: "Teacher updated",
+      data: teacher,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 exports.remove = async (req, res, next) => {
   try {
-    const deleted = await teacherService.deleteTeacher(
-      req.tenant.schoolId,
+    const schoolId = requireSchoolId(req);
+    const teacher = await teacherService.deactivateTeacher(
+      schoolId,
       req.params.id,
     );
-    if (!deleted) return next(new AppError("Teacher not found", 404));
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+    if (!teacher) return next(new AppError("Teacher not found", 404));
+    res.json({
+      success: true,
+      message: "Teacher deactivated",
+      data: teacher,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 exports.toggleStatus = async (req, res, next) => {
   try {
+    const schoolId = requireSchoolId(req);
     const teacher = await teacherService.toggleTeacherStatus(
-      req.tenant.schoolId,
+      schoolId,
       req.params.id,
     );
     if (!teacher) return next(new AppError("Teacher not found", 404));
-    res.json({ data: teacher });
-  } catch (err) {
-    next(err);
+    res.json({
+      success: true,
+      message: "Teacher status updated",
+      data: teacher,
+    });
+  } catch (error) {
+    next(error);
   }
 };

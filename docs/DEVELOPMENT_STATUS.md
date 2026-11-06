@@ -1,13 +1,13 @@
 # Development Status
 
-Audit date: 2026-11-06. Source inspection only. No application code was changed. Docker was not started. Tests were not executed. Backend `npm test` is a script that exits 1. Frontend has Vitest and one shared-package check, `frontend/src/shared/__tests__/verify-shared.test.js`, which was not run in this audit.
+Audit date: 2026-11-06. Students management, student directory search, and admin teacher management were implemented and verified later the same day. The rest of this file still describes the audit, except the Students and Teachers sections, the admin status rows, and the current task. Backend `npm test` is still a script that exits 1. The checks below were direct database and HTTP scripts, plus the admin UI on the Windows Vite server.
 
 The frontend dev server was already running on port 5173 when the audit started. That only shows the Vite process is up. It does not prove API workflows.
 
 ## Completed enough to build on
 
 - Express app with health check, CORS credentials, cookie parser, and a central error middleware.
-- Prisma 7 client with the PostgreSQL driver adapter, four migrations, and models for School, User, TeacherProfile, StudentProfile, and Class.
+- Prisma 7 client with the PostgreSQL driver adapter, six migrations, and models for School, User, TeacherProfile, StudentProfile, and Class.
 - Shared permission package and `authorize` middleware that reloads the user on each request.
 - `tenantScope` middleware that refuses a non-super-admin user with no school.
 - Login, cookie refresh, memory access token, and Axios 401 refresh. Logout clears the cookie locally.
@@ -27,11 +27,13 @@ Works for a basic session. Refresh tokens are not revoked. `refreshTokenVersion`
 
 ### Students
 
-Routes, Joi validation, service, React Query hooks, and the list page exist. The service still writes and filters fields removed by migration `20261006082306_add_class_and_student_profile`. The list page sends `gradeLevel` from a hardcoded grade array, not from `Class`. Pagination is capped at one row. Create uses a default password when none is supplied. Delete is a soft deactivate. A super admin with `schoolId: null` is not filtered to one school.
+Admin list, create, edit, view, and deactivate now use the current `StudentProfile` and optional `Class` link. Excel `.xlsx` import previews rows and saves only the valid ones. Pagination accepts a real page size up to 100. A school user with no school, including super admin, is rejected on these routes. There is still no parent account relationship: guardian name, phone, and email are fields on the student. Delete deactivates the login and keeps the row. Verified on 2026-11-06 against PostgreSQL and in the admin UI.
+
+Directory search waits 450ms after typing stops, then queries with the trimmed value. Repeating the same trimmed value does not send another request. The list stays on screen while the next page of results loads, and the in-flight request is cancelled when the query key changes. Search matches first name, last name, a two-part full name, email, and admission number. `pg_trgm` indexes cover those four columns, plus a `(schoolId, role, createdAt)` index for the default list. Verified on 2026-11-06: rapid typing produced one request, a padded admission number matched, an unknown school id returned no rows, and an invalid class id returned 400.
 
 ### Teachers
 
-List and get-by-id are tenant-scoped and match `TeacherProfile`. Create does not set a usable password. Update, delete, and status on the server are POST routes; the frontend calls PATCH and DELETE, so those actions do not hit the handlers. There is no pagination. `departmentId` has no department table. List authorization requires `manage:teachers` even for a read.
+The admin list is a table in the same layout as students: name and employee ID, contact, homeroom, status, and view, edit, and deactivate actions. Add Teacher opens `/admin/teachers/add`. Create hashes a password and writes the user and `TeacherProfile` together. Delete sets `isActive` to false and keeps the row. Search waits 450ms and matches name, email, phone, and employee ID. Filters are homeroom class and account status, both applied in PostgreSQL with pagination. Employee IDs are unique per school. There is no department table and no subject table, so those columns and filters are not shown, and the API rejects a department assignment. Reads and writes require `manage:teachers`. A school user with no school is rejected. A student token receives 403. A teacher id looked up with another school id is hidden. Verified on 2026-11-06 against PostgreSQL and in the admin UI.
 
 ### Academic and admin UI shells
 
@@ -73,7 +75,7 @@ Other role modules (teacher, student, parent, accountant, department head, super
 
 ## Architectural and security risks
 
-1. Student writes do not match the database, so the first live people workflow fails at runtime.
+1. Closed on 2026-11-06: student and teacher account writes match the current profile tables.
 2. Super-admin student and dashboard queries are cross-tenant.
 3. Refresh tokens cannot be revoked. Logout is not server-side revocation.
 4. Secrets and password hashes can reach logs. Access tokens can reach `sessionStorage`.
@@ -86,7 +88,7 @@ Other role modules (teacher, student, parent, accountant, department head, super
 
 ## Database readiness
 
-Ready for a single demo school with users, teacher profiles, student profiles, and classes. Not ready for attendance, grading, finance, communication, or parent relationships. Student application code is behind the latest migration.
+Ready for a single demo school with users, teacher profiles, student profiles, and classes. Teacher profiles now store `schoolId` so employee IDs can be unique inside one school. Not ready for attendance, grading, finance, communication, departments, subjects, or parent relationships.
 
 ## Authentication readiness
 
@@ -102,41 +104,34 @@ Compose is present and wired to Postgres 16, backend migrate-on-start, and Vite.
 
 ## Admin module status
 
-| Area                              | UI      | API                    | Database       | Verdict                                 |
-| --------------------------------- | ------- | ---------------------- | -------------- | --------------------------------------- |
-| Dashboard                         | Started | Partial                | Counts only    | Do not finish until source data is real |
-| Students                          | Wired   | Broken against schema  | Model exists   | First feature                           |
-| Teachers                          | Wired   | Partial, verb mismatch | Model exists   | Immediately after students              |
-| Classes                           | Mock    | None                   | Model exists   | Required for real student placement     |
-| Departments, subjects             | Mock    | None                   | None           | After classes                           |
-| Parents, accountants              | Mock    | None                   | Role enum only | After students and teachers             |
-| Attendance, exams                 | Mock    | Empty files            | None           | After people and classes                |
-| Reports, finance                  | Mock    | None                   | None           | After operational data                  |
-| Messages, announcements, settings | Mock    | None                   | None           | Later                                   |
+| Area                              | UI      | API                                                  | Database          | Verdict                                 |
+| --------------------------------- | ------- | ---------------------------------------------------- | ----------------- | --------------------------------------- |
+| Dashboard                         | Started | Partial                                              | Counts only       | Do not finish until source data is real |
+| Students                          | Working | Create, update, import, deactivate, debounced search | Profile and class | Verified 2026-11-06                     |
+| Teachers                          | Working | Table, create, update, deactivate, search, status    | Profile and user  | Verified 2026-11-06                     |
+| Classes                           | Mock    | None                                                 | Model exists      | Required for real student placement     |
+| Departments, subjects             | Mock    | None                                                 | None              | After classes                           |
+| Parents, accountants              | Mock    | None                                                 | Role enum only    | After students and teachers             |
+| Attendance, exams                 | Mock    | Empty files                                          | None              | After people and classes                |
+| Reports, finance                  | Mock    | None                                                 | None              | After operational data                  |
+| Messages, announcements, settings | Mock    | None                                                 | None              | Later                                   |
 
 ## Current task
 
-Audit recorded in this file and in `PROJECT_MASTER_PLAN.md`, `ARCHITECTURE.md`, and `API_CONVENTIONS.md`. Waiting for approval before implementation.
+Admin Students search and the Admin Teachers table are verified. Stopped before the next admin feature.
 
 ## Next recommended task
 
-Repair the Admin Students vertical slice so list, create, update, deactivate, and status work against the current `StudentProfile` and optional `Class` relation.
-
-Why this one, and not the dashboard: the dashboard is already calling the API, but most of what it shows is still sample data. Finishing it now would either keep false metrics or stall on attendance and fees tables that do not exist. Students is the furthest real admin workflow, and it is currently blocked by its own contract: the UI and service still speak the pre-migration profile shape, and the list endpoint returns one row per page.
-
-In that slice, include only the class support students need (list classes for the school and save `classId`). Do not build departments, subjects, or the rest of the dashboard in the same change.
-
-Also include these guards inside the slice, because they are part of making students safe:
-
-- Tenant filter always uses the caller’s school. Define super-admin behavior explicitly instead of returning every school.
-- Remove the default password and the password-hash log if that log path is touched.
-- Paginate with a real limit cap.
-- Match the API envelope in `API_CONVENTIONS.md` for the student routes.
-
-Teachers are the following slice: password hashing, PATCH/DELETE alignment, and pagination.
+Classes: the class table and student assignment already exist, but the admin Classes screen is still mock data. Departments and subjects are still not tables, so teacher department and subject assignment stay out of this slice.
 
 ## Known issues to carry
 
-- Frontend dev server was already running. Backend and database status were not probed.
-- No test run was claimed as passing.
-- Permission typos and the admin wildcard need a dedicated pass after the first people slice, not a drive-by edit across every navigation file.
+- Login still writes the user record, including the password hash, to the server log. That path was not part of this slice.
+- Refresh tokens are still not revoked on logout.
+- The admin role still has the wildcard permission `all`.
+- Student responses do not yet use the full `{ success, message, data }` envelope from `API_CONVENTIONS.md`. List returns `{ data, meta }` and writes return `{ data }`. Teacher responses include `success` and `message`.
+- `.xls` workbooks are rejected. ExcelJS reads `.xlsx` values and does not run macros.
+- Imports are limited to 100 rows and 2 MB. Valid rows are saved together. Invalid rows and duplicates are reported and skipped. If the database rejects the valid batch, none of that batch is kept.
+- Permission typos in the shared map remain.
+- Teacher reads use `manage:teachers` because there is no separate view permission.
+- Port 5173 is already taken on this machine by Docker and a WSL relay, and `localhost` opens that older app. This workspace's Vite dev server uses port 5174. Open `http://localhost:5174`.

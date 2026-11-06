@@ -38,7 +38,10 @@ const AdminRoutes = () => {
           <Route path="/" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="students" element={<Students />} />
+            <Route path="students/add" element={<Students />} />
+            <Route path="students/import" element={<Students />} />
             <Route path="teachers" element={<Teachers />} />
+            <Route path="teachers/add" element={<Teachers />} />
             <Route path="classes" element={<Classes />} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="departments" element={<DepartmentsPage />} />

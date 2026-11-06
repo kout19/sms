@@ -1,23 +1,43 @@
-// frontend/src/modules/admin/hooks/useTeachers.js
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import * as teacherApi from "../api/teachersApi";
-import { teacherKeys } from "../../../../shared/api/queryKeys";
+import { teacherKeys } from "@shared/api/queryKeys";
 
-// List query - we gonna  use inside TeachersPage
-// this means that we need teachers list
+const normalizeListFilters = (filters = {}) => ({
+  search: String(filters.search || "").trim().replace(/\s+/g, " "),
+  classId: filters.classId || "",
+  page: Number(filters.page) || 1,
+  limit: Number(filters.limit) || 20,
+  ...(typeof filters.isActive === "boolean" ? { isActive: filters.isActive } : {}),
+});
+
 export function useTeachers(filters = {}) {
+  const normalized = normalizeListFilters(filters);
+
   return useQuery({
-    queryKey: teacherKeys.list(filters), // used to fetch data based on the filters
-    queryFn: () => teacherApi.getAllTeachers(filters), // this is a function telling the query how to fetch data
+    queryKey: teacherKeys.list(normalized),
+    queryFn: ({ signal }) => teacherApi.getAllTeachers(normalized, { signal }),
+    placeholderData: keepPreviousData,
   });
 }
 
-// Single-record query -we gonna  use inside a Teacher detail/edit page
 export function useTeacher(id) {
   return useQuery({
     queryKey: teacherKeys.detail(id),
     queryFn: () => teacherApi.getTeacherById(id),
-    enabled: Boolean(id), // This will not fire if id isn't ready yet
+    enabled: Boolean(id),
+  });
+}
+
+export function useTeacherClasses() {
+  return useQuery({
+    queryKey: [...teacherKeys.all, "classes"],
+    queryFn: teacherApi.getTeacherClasses,
+    staleTime: 60 * 1000,
   });
 }
 
@@ -35,7 +55,7 @@ export function useUpdateTeacher() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, payload }) => teacherApi.updateTeacher(id, payload),
-    onSuccess: (updatedTeacher, { id }) => {
+    onSuccess: (_updatedTeacher, { id }) => {
       queryClient.invalidateQueries({ queryKey: teacherKeys.lists() });
       queryClient.invalidateQueries({ queryKey: teacherKeys.detail(id) });
     },
@@ -46,9 +66,9 @@ export function useDeleteTeacher() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: teacherApi.deleteTeacher,
-    onSuccess: (deletedId) => {
+    onSuccess: (_teacher, id) => {
       queryClient.invalidateQueries({ queryKey: teacherKeys.lists() });
-      queryClient.removeQueries({ queryKey: teacherKeys.detail(deletedId) });
+      queryClient.removeQueries({ queryKey: teacherKeys.detail(id) });
     },
   });
 }
@@ -57,7 +77,7 @@ export function useToggleTeacherStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: teacherApi.toggleTeacherStatus,
-    onSuccess: (updatedTeacher, id) => {
+    onSuccess: (_updatedTeacher, id) => {
       queryClient.invalidateQueries({ queryKey: teacherKeys.lists() });
       queryClient.invalidateQueries({ queryKey: teacherKeys.detail(id) });
     },
