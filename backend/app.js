@@ -4,6 +4,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./modules/auth/auth.routes");
+const adminRoutes = require("./modules/admin/admin.routes");
+const studentRoutes = require("./modules/students/student.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
 const teacherRoutes = require("./modules/teachers/teacher.routes");
@@ -28,6 +30,8 @@ if (process.env.NODE_ENV === "development") {
 // ---- Routes ----
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/students", studentRoutes);
 
 //-----Teachers routes-----
 

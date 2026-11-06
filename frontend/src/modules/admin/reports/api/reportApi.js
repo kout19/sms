@@ -305,6 +305,10 @@ export const getAcademicOverview = async (filters = {}) => {
   return MOCK_OVERVIEW;
 };
 
+export const getReportOverview = async (filters = {}) => {
+  return getAcademicOverview(filters);
+};
+
 export const getScoreTrend = async (filters = {}) => {
   await delay();
   return MOCK_TREND;

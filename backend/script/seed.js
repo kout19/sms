@@ -52,24 +52,44 @@ const seedUsers = [
     schoolId: DEMO_SCHOOL_ID,
   },
   {
-    id:"88888888-8888-8888-8888-888888888888",
+    id: "88888888-8888-8888-8888-888888888888",
     firstName: "Demo",
     lastName: "Accountant",
     email: process.env.SEED_ACCOUNTANT_EMAIL || "accountant@demo.com",
     password: process.env.SEED_ACCOUNTANT_PASSWORD || "Accountant123!",
     role: "accountant",
     schoolId: DEMO_SCHOOL_ID,
-    
   },
   {
     id: "99999999-9999-9999-9999-999999999999",
-    firstName:"Demo",
-    lastName:"Department Head",
+    firstName: "Demo",
+    lastName: "Department Head",
     email: process.env.SEED_DEPARTMENT_HEAD_EMAIL || "department@demo.com",
     password: process.env.SEED_DEPARTMENT_HEAD_PASSWORD || "Department123!",
     role: "department_head",
-    schoolId: DEMO_SCHOOL_ID
-  }
+    schoolId: DEMO_SCHOOL_ID,
+  },
+  {
+    id: "66666666-6666-6666-6666-666666666666",
+    firstName: "Demo",
+    lastName: "Student",
+    email: "student@demo.com",
+    password: "Student123!",
+    role: "student",
+    schoolId: DEMO_SCHOOL_ID,
+    studentProfile: {
+      create: {
+        admissionNo: "STD-2026-001",
+        dateOfBirth: new Date("2010-05-14"),
+        gender: "male",
+        enrollmentDate: new Date("2026-09-01"),
+        classId: demoClass.id,
+        guardianName: "Abebe Bekele",
+        guardianPhone: "+251911000001",
+        guardianEmail: "parent@demo.com",
+      },
+    },
+  },
 ];
 
 

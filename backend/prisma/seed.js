@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const prisma = require("../config/prisma");
 const { hashPassword } = require("../modules/users/user.helpers");
@@ -32,6 +33,14 @@ const seedUsers = [
     password: process.env.SEED_TEACHER_PASSWORD || "Teacher123!",
     role: "teacher",
     schoolId: DEMO_SCHOOL_ID,
+    teacherProfile: {
+      create: {
+        departmentId: null,
+        hireDate: new Date("2023-09-01"),
+        qualifications: "BSc Mathematics",
+        employeeId: "EMP-1001",
+      },
+    },
   },
   {
     id: "55555555-5555-5555-5555-555555555555",
@@ -43,13 +52,25 @@ const seedUsers = [
     schoolId: DEMO_SCHOOL_ID,
   },
   {
-    id: "66666666-6666-6666-6666-666666666666",
+    // ✅ the ONLY student entry — has the profile
+    id: "10000000-1000-1000-1000-100000000000",
     firstName: "Demo",
     lastName: "Student",
     email: process.env.SEED_STUDENT_EMAIL || "student@demo.com",
     password: process.env.SEED_STUDENT_PASSWORD || "Student123!",
     role: "student",
     schoolId: DEMO_SCHOOL_ID,
+    studentProfile: {
+      create: {
+        admissionNo: "STD-2026-001",
+        dateOfBirth: new Date("2010-05-14"),
+        gender: "male",
+        enrollmentDate: new Date("2026-09-01"),
+        guardianName: "Abebe Bekele",
+        guardianPhone: "+251911000001",
+        guardianEmail: "parent@demo.com",
+      },
+    },
   },
   {
     id: "88888888-8888-8888-8888-888888888888",
@@ -83,25 +104,66 @@ async function main() {
     },
   });
 
+  const demoClass = await prisma.class.upsert({
+    where: {
+      schoolId_grade_section_academicYear: {
+        schoolId: DEMO_SCHOOL_ID,
+        grade: "10",
+        section: "A",
+        academicYear: "2026-2027",
+      },
+    },
+    update: {},
+    create: {
+      schoolId: DEMO_SCHOOL_ID,
+      name: "Grade 10A",
+      grade: "10",
+      section: "A",
+      academicYear: "2026-2027",
+      capacity: 40,
+    },
+  });
+
   for (const userData of seedUsers) {
     const passwordHash = await hashPassword(userData.password);
+
+    const createData = {
+      id: userData.id,
+      schoolId: userData.schoolId,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email.toLowerCase(),
+      passwordHash,
+      role: userData.role,
+      isActive: true,
+      isEmailVerified: true,
+    };
+
+    // Attach teacherProfile if this user has one
+    if (userData.teacherProfile) {
+      createData.teacherProfile = userData.teacherProfile;
+    }
+
+    // Attach studentProfile if this user has one, injecting the demoClass.id
+    if (userData.studentProfile) {
+      createData.studentProfile = {
+        create: {
+          ...userData.studentProfile.create,
+          classId: demoClass.id,
+        },
+      };
+    }
 
     await prisma.user.upsert({
       where: { email: userData.email.toLowerCase() },
       update: {},
-      create: {
-        id: userData.id,
-        schoolId: userData.schoolId,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email.toLowerCase(),
-        passwordHash,
-        role: userData.role,
-        isActive: true,
-        isEmailVerified: true,
-      },
+      create: createData,
     });
+
+    console.log(`User created: ${userData.email}`);
   }
+
+  console.log("Seeding finished successfully.");
 }
 
 main()
