@@ -27,6 +27,7 @@ model School {
   users            User[]
   classes          Class[]
   teacherProfiles  TeacherProfile[]
+  departments      Department[]
 
   @@index([isActive])
   @@map("schools")
@@ -52,6 +53,7 @@ model User {
   teacherProfile      TeacherProfile?
   studentProfile      StudentProfile?
   homeroomClasses     Class[]         @relation("HomeroomTeacher")
+  departmentHeads     Department[]    @relation("DepartmentHead")
 
   @@index([schoolId])
   @@index([schoolId, role])
@@ -74,6 +76,7 @@ model TeacherProfile {
   school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   departmentId    String?  @db.Uuid
+  department      Department? @relation("DepartmentTeacherProfiles", fields: [departmentId], references: [id], onDelete: SetNull)
   hireDate        DateTime?
   qualifications  String?
   employeeId      String?
@@ -85,6 +88,31 @@ model TeacherProfile {
   @@index([schoolId])
   @@index([employeeId(ops: raw("gin_trgm_ops"))], map: "teacher_profiles_employee_trgm_idx", type: Gin)
   @@map("teacher_profiles")
+}
+
+model Department {
+  id            String   @id @default(uuid()) @db.Uuid
+  schoolId      String   @db.Uuid
+  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name          String
+  code          String
+  description   String?
+  icon          String?
+  isActive      Boolean  @default(true)
+
+  headTeacherId String?  @db.Uuid
+  headTeacher   User?    @relation("DepartmentHead", fields: [headTeacherId], references: [id], onDelete: SetNull)
+
+  teacherProfiles TeacherProfile[] @relation("DepartmentTeacherProfiles")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([schoolId, code])
+  @@unique([schoolId, name])
+  @@index([schoolId, isActive])
+  @@map("departments")
 }
 
 model StudentProfile {

@@ -1,129 +1,74 @@
-
-
 import apiAxios from "../../../../shared/api/axios";
-const MOCK_DEPARTMENTS = [
-  {
-    id: "d1",
-    code: "D-001",
-    name: "Mathematics",
-    icon: "ruler",
-    head: "Dr. Robert Williams",
-    teacherCount: 14,
-    studentCount: 412,
-    subjects: ["Algebra", "Calculus", "Statistics", "Geometry", "Trigonometry"],
-    isActive: true,
-  },
-  {
-    id: "d2",
-    code: "D-002",
-    name: "Science",
-    icon: "microscope",
-    head: "Prof. Linda Osei",
-    teacherCount: 18,
-    studentCount: 487,
-    subjects: ["Physics", "Chemistry", "Biology", "Earth Science"],
-    isActive: true,
-  },
-  {
-    id: "d3",
-    code: "D-003",
-    name: "English Language",
-    icon: "book-open",
-    head: "Ms. Claire Dubois",
-    teacherCount: 11,
-    studentCount: 398,
-    subjects: ["Literature", "Grammar", "Creative Writing", "Public Speaking"],
-    isActive: true,
-  },
-  {
-    id: "d4",
-    code: "D-004",
-    name: "Social Studies",
-    icon: "globe",
-    head: "Mr. Kwame Asante",
-    teacherCount: 9,
-    studentCount: 320,
-    subjects: ["History", "Geography", "Civics", "Economics"],
-    isActive: true,
-  },
-  {
-    id: "d5",
-    code: "D-005",
-    name: "Computer Science",
-    icon: "monitor",
-    head: "Dr. Maya Patel",
-    teacherCount: 7,
-    studentCount: 234,
-    subjects: ["Programming", "Data Structures", "Web Dev", "Databases"],
-    isActive: true,
-  },
-  {
-    id: "d6",
-    code: "D-006",
-    name: "Physical Education",
-    icon: "dumbbell",
-    head: "Coach Brian Torres",
-    teacherCount: 6,
-    studentCount: 560,
-    subjects: ["Athletics", "Team Sports", "Fitness", "Health"],
-    isActive: true,
-  },
-  {
-    id: "d7",
-    code: "D-007",
-    name: "Arts & Music",
-    icon: "palette",
-    head: null,
-    teacherCount: 5,
-    studentCount: 187,
-    subjects: ["Visual Arts", "Choir", "Band", "Theatre"],
-    isActive: false,
-  },
-  {
-    id: "d8",
-    code: "D-008",
-    name: "Foreign Languages",
-    icon: "languages",
-    head: "Dr. Carlos Mendez",
-    teacherCount: 8,
-    studentCount: 215,
-    subjects: ["Spanish", "French", "Mandarin", "German"],
-    isActive: true,
-  },
-];
 
-export const getAllDepartments = async (filters = {}) => {
-  // const response = await apiAxios.get("/admin/departments", { params: filters });
-  // return response.data.data;
-  await new Promise((r) => setTimeout(r, 200)); // simulate network delay
-  let results = MOCK_DEPARTMENTS;
-  if (filters.status && filters.status !== "all") {
-    results = results.filter((d) =>
-      filters.status === "active" ? d.isActive : !d.isActive,
-    );
-  }
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter((d) => d.name.toLowerCase().includes(q));
-  }
-  return results;
-};
+const normalizeDepartment = (department) => ({
+  ...department,
+  icon: department.icon || "book-open",
+  isActive: department.isActive !== false,
+  head:
+    department.head ||
+    (department.headTeacher
+      ? `${department.headTeacher.firstName} ${department.headTeacher.lastName}`.trim()
+      : null),
+  teacherCount: Number(
+    department.teacherCount ?? department.teacherProfiles?.length ?? 0,
+  ),
+  studentCount: Number(department.studentCount ?? 0),
+  subjects: Array.isArray(department.subjects) ? department.subjects : [],
+});
 
-export const createDepartment = async (payload) => {
+export const getAllDepartments = async (filters = {}, config = {}) => {
+  const params = {};
+  if (filters.search) params.search = filters.search;
+  if (filters.status && filters.status !== "all")
+    params.status = filters.status;
+  if (typeof filters.isActive === "boolean") params.isActive = filters.isActive;
+  if (filters.page) params.page = filters.page;
+  if (filters.limit) params.limit = filters.limit;
+
+  const response = await apiAxios.get("/admin/departments", {
+    params,
+    ...config,
+  });
+
+  const payload = response.data || {};
+  if (Array.isArray(payload.data)) {
+    return {
+      ...payload,
+      data: payload.data.map(normalizeDepartment),
+    };
+  }
 
   return {
-    id: crypto.randomUUID(),
-    teacherCount: 0,
-    studentCount: 0,
-    subjects: [],
-    isActive: true,
     ...payload,
+    data: Array.isArray(payload.data?.data)
+      ? payload.data.data.map(normalizeDepartment)
+      : [],
+    meta: payload.data?.meta || payload.meta || {},
   };
 };
 
+export const getDepartmentById = async (id) => {
+  const response = await apiAxios.get(`/admin/departments/${id}`);
+  const payload = response.data?.data ?? response.data;
+  return normalizeDepartment(payload);
+};
+
+export const createDepartment = async (payload) => {
+  const response = await apiAxios.post("/admin/departments", payload);
+  return normalizeDepartment(response.data?.data ?? response.data);
+};
+
+export const updateDepartment = async (id, payload) => {
+  const response = await apiAxios.patch(`/admin/departments/${id}`, payload);
+  return normalizeDepartment(response.data?.data ?? response.data);
+};
 
 export const toggleDepartmentStatus = async (id) => {
-  const dept = MOCK_DEPARTMENTS.find((d) => d.id === id);
-  if (dept) dept.isActive = !dept.isActive; // mutating the mock array directly - local testing only, real backend won't work this way
-  return dept;
+  const response = await apiAxios.patch(`/admin/departments/${id}/status`);
+  return normalizeDepartment(response.data?.data ?? response.data);
+};
+
+export const getDepartmentHeadOptions = async () => {
+  const response = await apiAxios.get("/admin/departments/head-options");
+  return response.data?.data ?? [];
 };

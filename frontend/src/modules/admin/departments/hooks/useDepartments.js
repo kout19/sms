@@ -1,31 +1,81 @@
-// frontend/src/modules/admin/hooks/useDepartments.js
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import * as departmentApi from "../api/departmentApi";
 import { departmentKeys } from "../../../../shared/api/queryKeys";
 
 export function useDepartments(filters = {}) {
+  const normalized = {
+    search: String(filters.search || "")
+      .trim()
+      .replace(/\s+/g, " "),
+    status: filters.status || "all",
+    page: Number(filters.page) || 1,
+    limit: Number(filters.limit) || 20,
+    ...(typeof filters.isActive === "boolean"
+      ? { isActive: filters.isActive }
+      : {}),
+  };
+
   return useQuery({
-    queryKey: departmentKeys.list(filters),
-    queryFn: () => departmentApi.getAllDepartments(filters),
+    queryKey: departmentKeys.list(normalized),
+    queryFn: ({ signal }) =>
+      departmentApi.getAllDepartments(normalized, { signal }),
+    placeholderData: keepPreviousData,
   });
 }
 
-
+export function useDepartment(id) {
+  return useQuery({
+    queryKey: departmentKeys.detail(id),
+    queryFn: () => departmentApi.getDepartmentById(id),
+    enabled: Boolean(id),
+  });
+}
 
 export function useCreateDepartment() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: departmentApi.createDepartment,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
+    },
+  });
+}
+
+export function useUpdateDepartment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }) =>
+      departmentApi.updateDepartment(id, payload),
+    onSuccess: (_updatedDepartment, { id }) => {
+      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departmentKeys.detail(id) });
+    },
+  });
+}
+
+export function useDepartmentHeads() {
+  return useQuery({
+    queryKey: [...departmentKeys.all, "head-options"],
+    queryFn: departmentApi.getDepartmentHeadOptions,
+    staleTime: 60 * 1000,
   });
 }
 
 export function useToggleDepartmentStatus() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: departmentApi.toggleDepartmentStatus,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() }),
+    onSuccess: (_updatedDepartment, id) => {
+      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departmentKeys.detail(id) });
+    },
   });
 }
