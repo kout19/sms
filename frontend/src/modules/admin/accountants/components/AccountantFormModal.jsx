@@ -31,6 +31,7 @@ function AccountantForm({
   accountant,
   onClose,
   onSaved,
+  embedded = false,
 }) {
   const isEdit = mode === "edit";
   const createAccountant = useCreateAccountant();
@@ -60,45 +61,34 @@ function AccountantForm({
         await createAccountant.mutateAsync(payload);
         onSaved("Accountant account created.");
       }
-      onClose();
+      if (!embedded) onClose();
     } catch (error) {
       setFormError(getApiError(error));
     }
   };
 
-  return (
-    <Modal
-      isOpen
-      onClose={isSaving ? () => {} : onClose}
-      title={isEdit ? "Edit accountant" : "Add accountant"}
-      subtitle={
-        isEdit
-          ? "Update this school accountant's account details."
-          : "Create a school-scoped accountant login. The password is stored as a hash."
-      }
-      maxWidth="max-w-2xl"
-      footer={
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form="accountant-form"
-            disabled={isSaving}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {isSaving ? "Saving..." : isEdit ? "Save changes" : "Add accountant"}
-          </button>
-        </div>
-      }
-    >
-      <form
+  const actions = (
+    <div className="flex justify-end gap-2">
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={isSaving}
+        className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 disabled:opacity-50"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        form="accountant-form"
+        disabled={isSaving}
+        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+      >
+        {isSaving ? "Saving..." : isEdit ? "Save changes" : "Add accountant"}
+      </button>
+    </div>
+  );
+  const formContent = (
+    <form
         id="accountant-form"
         onSubmit={handleSubmit}
         className="grid gap-4 p-6 sm:grid-cols-2"
@@ -166,7 +156,38 @@ function AccountantForm({
             }
           />
         </Field>
-      </form>
+    </form>
+  );
+
+  if (embedded) {
+    return (
+      <section className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header className="border-b border-slate-100 px-6 py-5">
+          <h1 className="text-xl font-semibold text-slate-900">Add accountant</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Create a school-scoped accountant login. The password is stored as a hash.
+          </p>
+        </header>
+        {formContent}
+        <div className="border-t border-slate-100 px-6 py-4">{actions}</div>
+      </section>
+    );
+  }
+
+  return (
+    <Modal
+      isOpen
+      onClose={isSaving ? () => {} : onClose}
+      title={isEdit ? "Edit accountant" : "Add accountant"}
+      subtitle={
+        isEdit
+          ? "Update this school accountant's account details."
+          : "Create a school-scoped accountant login. The password is stored as a hash."
+      }
+      maxWidth="max-w-2xl"
+      footer={actions}
+    >
+      {formContent}
     </Modal>
   );
 }
@@ -177,6 +198,7 @@ export default function AccountantFormModal({
   isOpen,
   onClose,
   onSaved,
+  embedded = false,
 }) {
   const isEdit = mode === "edit";
   const accountantQuery = useAccountant(accountantId, isOpen && isEdit);
@@ -220,6 +242,7 @@ export default function AccountantFormModal({
       accountant={accountantQuery.data}
       onClose={onClose}
       onSaved={onSaved}
+      embedded={embedded}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Building2, CheckSquare, Users } from "lucide-react";
 import Modal from "@shared/components/AttendanceModal";
 import { useDebouncedValue } from "@shared/hooks/useDebouncedValue";
@@ -22,6 +23,8 @@ const visiblePages = (current, total) => {
 };
 
 export default function DepartmentsPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,7 +32,7 @@ export default function DepartmentsPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [viewingId, setViewingId] = useState(null);
-  const [banner, setBanner] = useState("");
+  const [banner, setBanner] = useState(location.state?.notice || "");
   const [actionError, setActionError] = useState("");
 
   const searchTerm = useDebouncedValue(
@@ -223,10 +226,7 @@ export default function DepartmentsPage() {
               setStatusFilter(value);
               setCurrentPage(1);
             }}
-            onCreateClick={() => {
-              setEditingId(null);
-              setIsFormOpen(true);
-            }}
+            onCreateClick={() => navigate("/admin/departments/add")}
             onAction={handleAction}
           />
 

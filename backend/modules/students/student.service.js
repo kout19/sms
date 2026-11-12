@@ -153,6 +153,48 @@ const assertClassInSchool = async (schoolId, classId, excludeUserId) => {
   }
 };
 
+const normalizeParents = (parents) => parents || [];
+
+const assertParentsInSchool = async (client, schoolId, parents) => {
+  const parentIds = [...new Set(parents.map(({ parentId }) => parentId))];
+  if (!parentIds.length) return;
+
+  const matchingParents = await client.user.findMany({
+    where: { id: { in: parentIds }, schoolId, role: "parent" },
+    select: { id: true },
+  });
+  if (matchingParents.length !== parentIds.length) {
+    throw new AppError(
+      "One or more selected parents are not available in this school",
+      400,
+    );
+  }
+};
+
+const replaceParentLinks = async (transaction, schoolId, studentId, parents) => {
+  await assertParentsInSchool(transaction, schoolId, parents);
+  const profile = await transaction.studentProfile.upsert({
+    where: { userId: studentId },
+    create: { userId: studentId },
+    update: {},
+    select: { id: true },
+  });
+
+  await transaction.parentStudent.deleteMany({
+    where: { schoolId, studentProfileId: profile.id },
+  });
+  if (parents.length) {
+    await transaction.parentStudent.createMany({
+      data: parents.map(({ parentId, relationship }) => ({
+        schoolId,
+        parentId,
+        studentProfileId: profile.id,
+        relationship,
+      })),
+    });
+  }
+};
+
 const classLabel = (schoolClass) => {
   if (!schoolClass) return "Unassigned";
   return `${schoolClass.grade} ${schoolClass.section} (${schoolClass.academicYear})`;
@@ -202,7 +244,7 @@ exports.getStudentById = (schoolId, id) => {
   if (!UUID_PATTERN.test(id)) return null;
   return prisma.user.findFirst({
     where: { id, schoolId, role: "student" },
-    select: STUDENT_SELECT,
+    select: STUDENT_SELECT(schoolId),
   });
 };
 
@@ -224,9 +266,20 @@ exports.createStudent = async (schoolId, payload) => {
   try {
     await assertClassInSchool(schoolId, emptyToNull(payload.classId));
     const passwordHash = await hashPassword(payload.password);
-    return await prisma.user.create({
-      data: createData(schoolId, payload, passwordHash),
-      select: STUDENT_SELECT,
+    const parents = normalizeParents(payload.parents);
+    return await prisma.$transaction(async (transaction) => {
+      await assertParentsInSchool(transaction, schoolId, parents);
+      const student = await transaction.user.create({
+        data: createData(schoolId, payload, passwordHash),
+        select: { id: true },
+      });
+      if (parents.length) {
+        await replaceParentLinks(transaction, schoolId, student.id, parents);
+      }
+      return transaction.user.findUnique({
+        where: { id: student.id },
+        select: STUDENT_SELECT(schoolId),
+      });
     });
   } catch (error) {
     rethrowKnown(error);
@@ -264,10 +317,20 @@ exports.updateStudent = async (schoolId, id, payload) => {
       };
     }
 
-    return await prisma.user.update({
-      where: { id },
-      data,
-      select: STUDENT_SELECT,
+    const parents = payload.parents === undefined ? undefined : payload.parents;
+    return await prisma.$transaction(async (transaction) => {
+      await transaction.user.update({
+        where: { id },
+        data,
+        select: { id: true },
+      });
+      if (parents !== undefined) {
+        await replaceParentLinks(transaction, schoolId, id, parents);
+      }
+      return transaction.user.findFirst({
+        where: { id, schoolId, role: "student" },
+        select: STUDENT_SELECT(schoolId),
+      });
     });
   } catch (error) {
     rethrowKnown(error);
@@ -286,7 +349,7 @@ exports.deactivateStudent = async (schoolId, id) => {
   return prisma.user.update({
     where: { id },
     data: { isActive: false },
-    select: STUDENT_SELECT,
+    select: STUDENT_SELECT(schoolId),
   });
 };
 
@@ -302,7 +365,7 @@ exports.toggleStudentStatus = async (schoolId, id) => {
   return prisma.user.update({
     where: { id },
     data: { isActive: !student.isActive },
-    select: STUDENT_SELECT,
+    select: STUDENT_SELECT(schoolId),
   });
 };
 

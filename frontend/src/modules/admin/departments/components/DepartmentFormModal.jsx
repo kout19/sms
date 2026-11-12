@@ -45,6 +45,7 @@ export default function DepartmentFormModal({
   isOpen,
   onClose,
   onSaved,
+  embedded = false,
 }) {
   const isEdit = mode === "edit";
   const departmentQuery = useDepartment(isOpen && isEdit ? departmentId : null);
@@ -58,6 +59,8 @@ export default function DepartmentFormModal({
     if (!isOpen) return;
 
     if (isEdit && departmentQuery.data) {
+      // The form is initialized from the detail query when editing starts.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         name: departmentQuery.data.name || "",
         code: departmentQuery.data.code || "",
@@ -112,7 +115,7 @@ export default function DepartmentFormModal({
         await createDepartment.mutateAsync(payload);
         onSaved("Department created.");
       }
-      onClose();
+      if (!embedded) onClose();
     } catch (error) {
       const message =
         error?.response?.data?.message ||
@@ -122,39 +125,32 @@ export default function DepartmentFormModal({
     }
   };
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={isSaving ? () => {} : onClose}
-      title={isEdit ? "Edit department" : "Create department"}
-      subtitle="Keep the department code short and stable so reporting stays consistent."
-      maxWidth="max-w-2xl"
-      footer={
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form="department-form"
-            disabled={isSaving || (isEdit && departmentQuery.isLoading)}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {isSaving
-              ? "Saving..."
-              : isEdit
-                ? "Save changes"
-                : "Add department"}
-          </button>
-        </div>
-      }
-    >
-      <form
+  const actions = (
+    <div className="flex justify-end gap-2">
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={isSaving}
+        className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        form="department-form"
+        disabled={isSaving || (isEdit && departmentQuery.isLoading)}
+        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+      >
+        {isSaving
+          ? "Saving..."
+          : isEdit
+            ? "Save changes"
+            : "Add department"}
+      </button>
+    </div>
+  );
+  const formContent = (
+    <form
         id="department-form"
         onSubmit={handleSubmit}
         className="grid gap-4 p-6 sm:grid-cols-2"
@@ -260,7 +256,34 @@ export default function DepartmentFormModal({
             ))}
           </select>
         </label>
-      </form>
+    </form>
+  );
+
+  if (embedded) {
+    return (
+      <section className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header className="border-b border-slate-100 px-6 py-5">
+          <h1 className="text-xl font-semibold text-slate-900">Add department</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Keep the department code short and stable so reporting stays consistent.
+          </p>
+        </header>
+        {formContent}
+        <div className="border-t border-slate-100 px-6 py-4">{actions}</div>
+      </section>
+    );
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={isSaving ? () => {} : onClose}
+      title={isEdit ? "Edit department" : "Create department"}
+      subtitle="Keep the department code short and stable so reporting stays consistent."
+      maxWidth="max-w-2xl"
+      footer={actions}
+    >
+      {formContent}
     </Modal>
   );
 }

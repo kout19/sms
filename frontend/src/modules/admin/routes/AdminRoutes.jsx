@@ -7,7 +7,9 @@ import Teachers from "../teachers/pages/TeachersPage";
 import Classes from "../classes/pages/ClassesPage";
 import AttendancePage from "../attendance/pages/AttendancePage";
 import DepartmentsPage from "../departments/pages/DepartmentsPage";
+import DepartmentAddPage from "../departments/pages/DepartmentAddPage";
 import AccountantsPage from "../accountants/pages/AccountantsPage";
+import AccountantAddPage from "../accountants/pages/AccountantAddPage";
 import ParentsPage from "../parents/pages/ParentsPage";
 import SubjectsPage from "../subjects/pages/SubjectsPage";
 import ExamsPage from "../exams/pages/ExamsPage";
@@ -45,8 +47,11 @@ const AdminRoutes = () => {
             <Route path="classes" element={<Classes />} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="departments" element={<DepartmentsPage />} />
+            <Route path="departments/add" element={<DepartmentAddPage />} />
             <Route path="accountants" element={<AccountantsPage />} />
+            <Route path="accountants/add" element={<AccountantAddPage />} />
             <Route path="parents" element={<ParentsPage />} />
+            <Route path="parents/add" element={<ParentsPage />} />
             <Route path="subjects" element={<SubjectsPage />} />
             <Route path="exams" element={<ExamsPage />} />
             <Route path="reports" element={<ReportsPage />} />

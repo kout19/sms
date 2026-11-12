@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   useAccountants,
   useSetAccountantStatus,
@@ -12,6 +13,8 @@ import { getApiError } from "../utils/accountantForm";
 const PAGE_SIZE = 10;
 
 export default function AccountantsPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -21,7 +24,7 @@ export default function AccountantsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [actionError, setActionError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(location.state?.notice || "");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -164,7 +167,7 @@ export default function AccountantsPage() {
           setPage(1);
           setNotice("");
         }}
-        onCreateClick={() => openForm("create")}
+        onCreateClick={() => navigate("/admin/accountants/add")}
         onAction={handleAction}
         isLoading={accountantQuery.isPending}
         isFetching={accountantQuery.isFetching}

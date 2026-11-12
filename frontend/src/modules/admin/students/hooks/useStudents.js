@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import * as studentsApi from "../api/studentsApi";
-import { studentKeys } from "@shared/api/queryKeys";
+import { parentKeys, studentKeys } from "@shared/api/queryKeys";
 
 const normalizeListFilters = (filters = {}) => ({
   search: String(filters.search || "").trim().replace(/\s+/g, " "),
@@ -40,6 +40,8 @@ export function useCreateStudent() {
     mutationFn: studentsApi.createStudent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: parentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: parentKeys.details() });
     },
   });
 }
@@ -52,6 +54,8 @@ export function useUpdateStudent() {
     onSuccess: (_updatedStudent, { id }) => {
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
       queryClient.invalidateQueries({ queryKey: studentKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: parentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: parentKeys.details() });
     },
   });
 }

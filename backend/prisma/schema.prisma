@@ -28,6 +28,7 @@ model School {
   classes          Class[]
   teacherProfiles  TeacherProfile[]
   departments      Department[]
+  parentStudentLinks ParentStudent[]
 
   @@index([isActive])
   @@map("schools")
@@ -52,6 +53,7 @@ model User {
   school              School?         @relation(fields: [schoolId], references: [id])
   teacherProfile      TeacherProfile?
   studentProfile      StudentProfile?
+  parentStudentLinks  ParentStudent[] @relation("ParentStudentParent")
   homeroomClasses     Class[]         @relation("HomeroomTeacher")
   departmentHeads     Department[]    @relation("DepartmentHead")
 
@@ -135,12 +137,31 @@ model StudentProfile {
   guardianPhone   String?
   guardianEmail   String?
 
+  parentLinks     ParentStudent[]
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([classId])
   @@index([admissionNo(ops: raw("gin_trgm_ops"))], map: "student_profiles_admission_trgm_idx", type: Gin)
   @@map("student_profiles")
+}
+
+model ParentStudent {
+  schoolId         String         @db.Uuid
+  parentId         String         @db.Uuid
+  studentProfileId String         @db.Uuid
+  relationship     String         @default("guardian")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  school           School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  parent           User           @relation("ParentStudentParent", fields: [parentId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@id([schoolId, parentId, studentProfileId])
+  @@index([schoolId, parentId])
+  @@index([schoolId, studentProfileId])
+  @@map("parent_students")
 }
 
 

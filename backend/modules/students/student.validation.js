@@ -20,6 +20,18 @@ const gender = Joi.string()
   .empty("");
 
 const classId = Joi.string().uuid().allow(null, "").empty("");
+const parentLinks = Joi.array()
+  .items(
+    Joi.object({
+      parentId: Joi.string()
+        .pattern(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+        .required(),
+      relationship: Joi.string()
+        .valid("mother", "father", "guardian", "other")
+        .default("guardian"),
+    }).unknown(false),
+  )
+  .unique("parentId");
 
 const profileFields = {
   phone: optionalText(30),
@@ -51,6 +63,7 @@ exports.validateCreateStudent = (payload) =>
     ...nameFields,
     password: passwordField.required(),
     isActive: Joi.boolean().default(true),
+    parents: parentLinks.default([]),
     ...profileFields,
   })
     .unknown(false)
@@ -63,6 +76,7 @@ exports.validateUpdateStudent = (payload) =>
     email: Joi.string().trim().lowercase().email().max(200),
     password: passwordField.allow("").optional(),
     isActive: Joi.boolean(),
+    parents: parentLinks,
     ...profileFields,
   })
     .min(1)

@@ -24,7 +24,7 @@ const STUDENT_LIST_SELECT = {
   },
 };
 
-const STUDENT_SELECT = {
+const STUDENT_SELECT = (schoolId) => ({
   id: true,
   firstName: true,
   lastName: true,
@@ -46,9 +46,26 @@ const STUDENT_SELECT = {
       guardianPhone: true,
       guardianEmail: true,
       class: classOnStudent,
+      parentLinks: {
+        where: { schoolId },
+        select: {
+          relationship: true,
+          parent: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              isActive: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   },
-};
+});
 
 const CLASS_SELECT = {
   id: true,

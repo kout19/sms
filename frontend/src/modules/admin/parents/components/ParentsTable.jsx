@@ -17,6 +17,7 @@ import DropdownMenu from "../../../../shared/components/DropdownMenu";
 import Pagination from "../../../../shared/components/Pagination";
 
 function formatDate(dateStr) {
+  if (!dateStr) return "—";
   return new Date(dateStr).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -56,6 +57,7 @@ export default function ParentTable({
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search by name, email..."
+              aria-label="Search parents by name or email"
               className="pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -63,6 +65,7 @@ export default function ParentTable({
             <select
               value={statusFilter}
               onChange={(e) => onStatusFilterChange(e.target.value)}
+              aria-label="Filter parents by account status"
               className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-gray-200 text-sm bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">All Status</option>
@@ -72,6 +75,7 @@ export default function ParentTable({
             <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           <button
+            type="button"
             onClick={onCreateClick}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
           >
@@ -94,7 +98,7 @@ export default function ParentTable({
           </div>
 
           <div>
-            {parents.map((parent) => (
+            {parents.length ? parents.map((parent) => (
               <div
                 key={parent.id}
                 className="grid grid-cols-[1.6fr_1.8fr_0.8fr_2fr_0.9fr_1fr_0.5fr] gap-4 px-6 py-4 items-center border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
@@ -105,7 +109,6 @@ export default function ParentTable({
                     <p className="text-sm font-semibold text-gray-900">
                       {parent.name}
                     </p>
-                    <p className="text-xs text-gray-400">{parent.code}</p>
                   </div>
                 </div>
 
@@ -116,29 +119,29 @@ export default function ParentTable({
                   </div>
                   <div className="flex items-center gap-1.5 text-sm text-gray-500">
                     <Phone className="w-3.5 h-3.5 text-gray-400" />
-                    {parent.phone}
+                    {parent.phone || "No phone"}
                   </div>
                 </div>
 
                 <div>
                   <span className="text-sm font-semibold text-gray-900">
-                    {parent.children.length}
+                    {parent.children?.length || 0}
                   </span>
                   <span className="text-xs text-gray-400 ml-1">
-                    {parent.children.length === 1 ? "child" : "children"}
+                    {parent.children?.length === 1 ? "child" : "children"}
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  {parent.children.map((child) => (
+                  {parent.children?.length ? parent.children.map((child) => (
                     <div
-                      key={child.name}
+                      key={child.id}
                       className="flex items-center gap-1.5 text-sm text-gray-600"
                     >
                       <GraduationCap className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                       {child.name} — {child.grade}
                     </div>
-                  ))}
+                  )) : <span className="text-sm text-gray-400">No linked students</span>}
                 </div>
 
                 <StatusBadge isActive={parent.isActive} />
@@ -150,7 +153,11 @@ export default function ParentTable({
                 <div className="flex justify-end">
                   <DropdownMenu
                     trigger={
-                      <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
+                      <button
+                        type="button"
+                        aria-label={`Actions for ${parent.name}`}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+                      >
                         <MoreHorizontal className="w-4 h-4" />
                       </button>
                     }
@@ -180,7 +187,11 @@ export default function ParentTable({
                   />
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="px-6 py-10 text-center text-sm text-gray-500">
+                No parents match the selected search or filters.
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -13,9 +13,7 @@ export const emptyStudentForm = {
   classId: "",
   previousSchool: "",
   address: "",
-  guardianName: "",
-  guardianPhone: "",
-  guardianEmail: "",
+  parents: [],
   medicalNotes: "",
   isActive: true,
 };
@@ -40,9 +38,13 @@ export const studentToForm = (student) => {
     classId: profile.class?.id || "",
     previousSchool: profile.previousSchool || "",
     address: profile.address || "",
-    guardianName: profile.guardianName || "",
-    guardianPhone: profile.guardianPhone || "",
-    guardianEmail: profile.guardianEmail || "",
+    parents: (profile.parentLinks || []).map(({ parent, relationship }) => ({
+      parentId: parent.id,
+      name: `${parent.firstName} ${parent.lastName}`.trim(),
+      email: parent.email,
+      phone: parent.phone,
+      relationship: relationship || "guardian",
+    })),
     medicalNotes: profile.medicalNotes || "",
     isActive: student?.isActive ?? true,
   };
@@ -60,9 +62,6 @@ export const validateStudentForm = (form, mode) => {
   }
   if (mode === "edit" && form.password && form.password.length < 8) {
     errors.password = "Password must be at least 8 characters.";
-  }
-  if (form.guardianEmail && !EMAIL_PATTERN.test(form.guardianEmail.trim())) {
-    errors.guardianEmail = "Enter a valid guardian email.";
   }
   if (form.dateOfBirth && form.dateOfBirth > new Date().toISOString().slice(0, 10)) {
     errors.dateOfBirth = "Date of birth must be in the past.";
@@ -84,9 +83,10 @@ export const toStudentPayload = (form, mode) => {
     classId: form.classId || null,
     previousSchool: form.previousSchool.trim(),
     address: form.address.trim(),
-    guardianName: form.guardianName.trim(),
-    guardianPhone: form.guardianPhone.trim(),
-    guardianEmail: form.guardianEmail.trim(),
+    parents: form.parents.map(({ parentId, relationship }) => ({
+      parentId,
+      relationship,
+    })),
     medicalNotes: form.medicalNotes.trim(),
     isActive: Boolean(form.isActive),
   };

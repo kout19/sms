@@ -11,6 +11,7 @@ const errorHandler = require("./middlewares/errorHandler");
 const teacherRoutes = require("./modules/teachers/teacher.routes");
 const departmentRoutes = require("./modules/departments/department.routes");
 const accountantRoutes = require("./modules/accountants/accountant.routes");
+const parentRoutes = require("./modules/parents/parent.route");
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/students", studentRoutes);
 app.use("/api/v1/admin/departments", departmentRoutes);
 app.use("/api/v1/admin/accountants", accountantRoutes);
+app.use("/api/v1/admin/parents", parentRoutes);
 
 //-----Teachers routes-----
 

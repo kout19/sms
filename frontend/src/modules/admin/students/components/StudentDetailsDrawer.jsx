@@ -39,9 +39,26 @@ export default function StudentDetailsDrawer({ studentId, isOpen, onClose }) {
           <Row label="Enrollment date" value={toDateInput(profile?.enrollmentDate)} />
           <Row label="Previous school" value={profile?.previousSchool} />
           <Row label="Address" value={profile?.address} />
-          <Row label="Guardian" value={profile?.guardianName} />
-          <Row label="Guardian phone" value={profile?.guardianPhone} />
-          <Row label="Guardian email" value={profile?.guardianEmail} />
+          <Row label="Legacy guardian name" value={profile?.guardianName} />
+          <Row label="Legacy guardian phone" value={profile?.guardianPhone} />
+          <Row label="Legacy guardian email" value={profile?.guardianEmail} />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              Linked parents
+            </p>
+            {profile?.parentLinks?.length ? (
+              <ul className="mt-1 space-y-2">
+                {profile.parentLinks.map(({ parent, relationship }) => (
+                  <li key={parent.id} className="text-sm text-slate-800">
+                    {parent.firstName} {parent.lastName} · {relationship}
+                    {parent.email ? ` · ${parent.email}` : ""}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-sm text-slate-800">No parent accounts linked.</p>
+            )}
+          </div>
           <Row label="Medical notes" value={profile?.medicalNotes} />
         </div>
       ) : null}

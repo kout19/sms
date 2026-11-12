@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import Modal from "@shared/components/AttendanceModal";
+import { useDebouncedValue } from "@shared/hooks/useDebouncedValue";
+import { useParents } from "../../parents/hooks/useParents";
+import ParentFormModal from "../../parents/components/ParentFormModal";
 import {
   useCreateStudent,
   useStudent,
@@ -41,12 +44,34 @@ export default function StudentFormModal({
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [parentSearch, setParentSearch] = useState("");
+  const [parentCreateOpen, setParentCreateOpen] = useState(false);
+  const [parentNotice, setParentNotice] = useState("");
+  const parentSearchTerm = useDebouncedValue(
+    parentSearch.trim().replace(/\s+/g, " "),
+    350,
+  );
+  const parentsQuery = useParents(
+    {
+      search: parentSearchTerm,
+      status: "active",
+      page: 1,
+      limit: 10,
+    },
+    isOpen && parentSearchTerm.length >= 2,
+  );
+  const parentOptions = parentsQuery.data?.data || [];
 
   useEffect(() => {
     if (!isOpen) {
+      // The modal form is reset when it closes or new detail data arrives.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHydrated(false);
+      setParentCreateOpen(false);
       return;
     }
+    setParentSearch("");
+    setParentNotice("");
     if (isEdit) {
       if (studentQuery.data) {
         setForm(studentToForm(studentQuery.data));
@@ -64,6 +89,58 @@ export default function StudentFormModal({
 
   const setField = (name, value) => {
     setForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const toggleParent = (parent) => {
+    setForm((current) => {
+      const selected = current.parents.some(
+        ({ parentId }) => parentId === parent.id,
+      );
+      return {
+        ...current,
+        parents: selected
+          ? current.parents.filter(({ parentId }) => parentId !== parent.id)
+          : [
+              ...current.parents,
+              {
+                parentId: parent.id,
+                name:
+                  parent.name ||
+                  `${parent.firstName} ${parent.lastName}`.trim(),
+                email: parent.email,
+                phone: parent.phone,
+                relationship: "guardian",
+              },
+            ],
+      };
+    });
+  };
+
+  const setParentRelationship = (parentId, relationship) => {
+    setForm((current) => ({
+      ...current,
+      parents: current.parents.map((parent) =>
+        parent.parentId === parentId ? { ...parent, relationship } : parent,
+      ),
+    }));
+  };
+
+  const selectCreatedParent = (parent) => {
+    setForm((current) => ({
+      ...current,
+      parents: current.parents.some(({ parentId }) => parentId === parent.id)
+        ? current.parents
+        : [
+            ...current.parents,
+            {
+              parentId: parent.id,
+              name: parent.name || `${parent.firstName} ${parent.lastName}`.trim(),
+              email: parent.email,
+              phone: parent.phone,
+              relationship: "guardian",
+            },
+          ],
+    }));
   };
 
   const isSaving = createStudent.isPending || updateStudent.isPending;
@@ -90,11 +167,12 @@ export default function StudentFormModal({
   };
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={isSaving ? () => {} : onClose}
       title={isEdit ? "Edit student" : "Add student"}
-      subtitle="Guardian details stay on the student record. This does not create a parent account."
+      subtitle="Link existing parent accounts or add one without losing this student draft. Legacy guardian details are retained."
       maxWidth="max-w-3xl"
       footer={
         <div className="flex justify-end gap-2">
@@ -185,16 +263,116 @@ export default function StudentFormModal({
             <Field label="Address">
               <input className={inputClass} value={form.address} onChange={(event) => setField("address", event.target.value)} />
             </Field>
-            <Field label="Guardian name">
-              <input className={inputClass} value={form.guardianName} onChange={(event) => setField("guardianName", event.target.value)} />
-            </Field>
-            <Field label="Guardian phone">
-              <input className={inputClass} value={form.guardianPhone} onChange={(event) => setField("guardianPhone", event.target.value)} />
-            </Field>
-            <Field label="Guardian email" error={errors.guardianEmail}>
-              <input type="email" className={inputClass} value={form.guardianEmail} onChange={(event) => setField("guardianEmail", event.target.value)} />
-            </Field>
           </div>
+
+          <section aria-labelledby="student-parents-heading" className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 id="student-parents-heading" className="text-sm font-semibold text-slate-800">
+                  Parents and guardians
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Link existing parent accounts. A parent can be linked to multiple students.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setParentCreateOpen(true)}
+                className="shrink-0 rounded-lg border border-indigo-200 px-3 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+              >
+                Create new parent
+              </button>
+            </div>
+
+            {parentNotice ? (
+              <p role="status" className="text-xs text-emerald-700">{parentNotice}</p>
+            ) : null}
+            {form.parents.length ? (
+              <ul className="space-y-2">
+                {form.parents.map((parent) => (
+                  <li
+                    key={parent.parentId}
+                    className="flex flex-col gap-2 rounded-lg border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <span className="text-sm text-slate-700">
+                      {parent.name}
+                      {parent.email ? ` · ${parent.email}` : ""}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 text-xs text-slate-600">
+                        Relationship
+                        <select
+                          aria-label={`Relationship for ${parent.name}`}
+                          className="rounded border border-slate-200 bg-white px-2 py-1"
+                          value={parent.relationship}
+                          onChange={(event) =>
+                            setParentRelationship(parent.parentId, event.target.value)
+                          }
+                        >
+                          <option value="guardian">Guardian</option>
+                          <option value="mother">Mother</option>
+                          <option value="father">Father</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => toggleParent({ id: parent.parentId })}
+                        className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+                No parent accounts linked.
+              </p>
+            )}
+
+            <Field label="Search parent accounts">
+              <input
+                type="search"
+                className={inputClass}
+                value={parentSearch}
+                onChange={(event) => setParentSearch(event.target.value)}
+                placeholder="Search by name, email, or phone"
+              />
+            </Field>
+            {parentSearch.trim().length < 2 ? (
+              <p className="text-xs text-slate-500">Enter at least 2 characters to search.</p>
+            ) : parentSearch.trim().replace(/\s+/g, " ") !== parentSearchTerm ? (
+              <p className="text-sm text-slate-500">Searching parent accounts...</p>
+            ) : parentsQuery.isError ? (
+              <p role="alert" className="text-sm text-rose-600">{getApiError(parentsQuery.error)}</p>
+            ) : parentsQuery.isLoading ? (
+              <p className="text-sm text-slate-500">Searching parent accounts...</p>
+            ) : parentOptions.length ? (
+              <ul className="max-h-40 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
+                {parentOptions.map((parent) => (
+                  <li key={parent.id} className="p-2">
+                    <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={form.parents.some(({ parentId }) => parentId === parent.id)}
+                        onChange={() => toggleParent(parent)}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>
+                        {parent.name || `${parent.firstName} ${parent.lastName}`}
+                        {parent.email ? ` · ${parent.email}` : ""}
+                        {parent.phone ? ` · ${parent.phone}` : ""}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500">No active parent accounts matched this search.</p>
+            )}
+          </section>
 
           <Field label="Medical notes">
             <textarea
@@ -216,5 +394,16 @@ export default function StudentFormModal({
         </form>
       )}
     </Modal>
+    <ParentFormModal
+      mode="create"
+      isOpen={isOpen && parentCreateOpen}
+      onClose={() => setParentCreateOpen(false)}
+      onParentCreated={selectCreatedParent}
+      onSaved={() => {
+        setParentCreateOpen(false);
+        setParentNotice("Parent account created and selected.");
+      }}
+    />
+    </>
   );
 }
