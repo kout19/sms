@@ -28,7 +28,7 @@ export function useTeachers(filters = {}) {
 export function useTeacher(id) {
   return useQuery({
     queryKey: teacherKeys.detail(id),
-    queryFn: () => teacherApi.getTeacherById(id),
+    queryFn: ({ signal }) => teacherApi.getTeacherById(id, { signal }),
     enabled: Boolean(id),
   });
 }
@@ -36,7 +36,7 @@ export function useTeacher(id) {
 export function useTeacherClasses() {
   return useQuery({
     queryKey: [...teacherKeys.all, "classes"],
-    queryFn: teacherApi.getTeacherClasses,
+    queryFn: ({ signal }) => teacherApi.getTeacherClasses({ signal }),
     staleTime: 60 * 1000,
   });
 }

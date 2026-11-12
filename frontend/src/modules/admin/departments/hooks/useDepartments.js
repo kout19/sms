@@ -31,7 +31,7 @@ export function useDepartments(filters = {}) {
 export function useDepartment(id) {
   return useQuery({
     queryKey: departmentKeys.detail(id),
-    queryFn: () => departmentApi.getDepartmentById(id),
+    queryFn: ({ signal }) => departmentApi.getDepartmentById(id, { signal }),
     enabled: Boolean(id),
   });
 }
@@ -63,7 +63,8 @@ export function useUpdateDepartment() {
 export function useDepartmentHeads() {
   return useQuery({
     queryKey: [...departmentKeys.all, "head-options"],
-    queryFn: departmentApi.getDepartmentHeadOptions,
+    queryFn: ({ signal }) =>
+      departmentApi.getDepartmentHeadOptions({ signal }),
     staleTime: 60 * 1000,
   });
 }

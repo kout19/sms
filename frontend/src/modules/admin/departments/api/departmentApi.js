@@ -47,8 +47,8 @@ export const getAllDepartments = async (filters = {}, config = {}) => {
   };
 };
 
-export const getDepartmentById = async (id) => {
-  const response = await apiAxios.get(`/admin/departments/${id}`);
+export const getDepartmentById = async (id, { signal } = {}) => {
+  const response = await apiAxios.get(`/admin/departments/${id}`, { signal });
   const payload = response.data?.data ?? response.data;
   return normalizeDepartment(payload);
 };
@@ -68,7 +68,9 @@ export const toggleDepartmentStatus = async (id) => {
   return normalizeDepartment(response.data?.data ?? response.data);
 };
 
-export const getDepartmentHeadOptions = async () => {
-  const response = await apiAxios.get("/admin/departments/head-options");
+export const getDepartmentHeadOptions = async ({ signal } = {}) => {
+  const response = await apiAxios.get("/admin/departments/head-options", {
+    signal,
+  });
   return response.data?.data ?? [];
 };

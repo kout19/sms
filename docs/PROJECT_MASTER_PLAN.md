@@ -43,7 +43,7 @@ Authentication exists and is usable, with security gaps listed in `DEVELOPMENT_S
 
 ### Phase 3 — People
 
-Students and teachers have mounted APIs and admin screens wired to those APIs. Both are incomplete and, for students, inconsistent with the current Prisma schema. Parents, accountants, and settings user-management are mock UI. There is no parent-to-student relationship.
+Students, teachers, and admin accountant account management have mounted APIs and admin screens wired to those APIs. The accountant slice uses the role-based `User` model and does not imply a financial ledger. Parents and settings user-management remain mock UI. There is no parent-to-student relationship.
 
 ### Phase 4 — Academic operations
 

@@ -1,87 +1,44 @@
-import {
-  Calculator,
-  UserCheck,
-  Clock,
-  Activity,
-  TrendingUp,
-  CreditCard,
-  AlertCircle,
-  Wallet,
-} from "lucide-react";
+import { Calculator, UserCheck, UserX } from "lucide-react";
 import StatCard from "../cards/AccountantStatCard";
-import { useFinanceOverview } from "../hooks/useAccountants";
+import { useAccountantOverview } from "../hooks/useAccountants";
 
 export default function FinanceOverviewCards() {
-  const { data, isLoading } = useFinanceOverview();
-  if (isLoading || !data) return null;
+  const { data, isLoading, isError } = useAccountantOverview();
+
+  if (isLoading) {
+    return <p className="text-sm text-gray-400">Loading accountant summary...</p>;
+  }
+  if (isError) {
+    return (
+      <p role="alert" className="text-sm text-rose-600">
+        Could not load the accountant summary.
+      </p>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Calculator}
-          value={data.totalAccountants}
-          title="Finance Staff"
-          subtitle="Total accountants"
-          color="indigo"
-        />
-        <StatCard
-          icon={UserCheck}
-          value={data.activeToday}
-          title="Active"
-          subtitle="On duty today"
-          color="emerald"
-        />
-        <StatCard
-          icon={Clock}
-          value={data.pendingTasks}
-          title="Pending Tasks"
-          subtitle="Require attention"
-          color="amber"
-        />
-        <StatCard
-          icon={Activity}
-          value={data.transactionCount.toLocaleString()}
-          title="Transactions"
-          subtitle="This academic year"
-          color="sky"
-          trend={data.transactionTrend}
-        />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          tone="colored"
-          color="emerald"
-          icon={TrendingUp}
-          value={`$${data.totalRevenue.toLocaleString()}`}
-          title="Total Revenue"
-          subtitle="2023-24 Academic Year"
-        />
-        <StatCard
-          tone="colored"
-          color="sky"
-          icon={CreditCard}
-          value={`$${data.collectedThisMonth.toLocaleString()}`}
-          title="Collected This Month"
-          subtitle="January 2024"
-        />
-        <StatCard
-          tone="colored"
-          color="amber"
-          icon={AlertCircle}
-          value={`$${data.outstandingFees.toLocaleString()}`}
-          title="Outstanding Fees"
-          subtitle={`${data.outstandingStudentCount} students pending`}
-        />
-        <StatCard
-          tone="colored"
-          color="purple"
-          icon={Wallet}
-          value={`$${data.disbursements.toLocaleString()}`}
-          title="Disbursements"
-          subtitle="Scholarships & Refunds"
-        />
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <StatCard
+        icon={Calculator}
+        value={data.totalAccountants.toLocaleString()}
+        title="Accountants"
+        subtitle="Total in this school"
+        color="indigo"
+      />
+      <StatCard
+        icon={UserCheck}
+        value={data.activeAccountants.toLocaleString()}
+        title="Active"
+        subtitle="Accounts enabled"
+        color="emerald"
+      />
+      <StatCard
+        icon={UserX}
+        value={data.inactiveAccountants.toLocaleString()}
+        title="Inactive"
+        subtitle="Accounts disabled"
+        color="amber"
+      />
     </div>
   );
 }

@@ -37,6 +37,8 @@ Role shells under `teachers`, `students`, `parents`, `superAdmin`, `accountant`,
 - `/api/v1/admin` (overview only)
 - `/api/v1/students`
 - `/api/v1/admin/teachers`
+- `/api/v1/admin/departments`
+- `/api/v1/admin/accountants`
 
 These files exist and are empty, and are not mounted: user routes, parent routes, assignment routes, course routes, grade routes. Several domain folders still contain unused `*.model.js` files from an earlier data-access style. Prisma is the data access layer (`backend/config/prisma.js`, PostgreSQL driver adapter). Duplicate Prisma setup files also exist under `backend/infrastructure/prisma.js`, `backend/config/database.js`, and `backend/config/db.js`.
 
@@ -52,11 +54,14 @@ Current models:
 - `User` with role enum: `super_admin`, `admin`, `department_head`, `teacher`, `accountant`, `parent`, `student`
 - `TeacherProfile` (one-to-one with User)
 - `StudentProfile` (one-to-one with User, optional `Class`)
+- `Department` (school-scoped, with optional head and teacher-profile relations)
 - `Class` (school, grade, section, academic year string, optional homeroom teacher)
 
-Identity is separate from teacher and student profiles. Parent and accountant have no profile tables. There is no parent-student link, department, subject, academic-year, attendance, exam, grade, announcement, message, fee, or audit table.
+Identity is separate from teacher and student profiles. Parent and accountant have no profile tables. There is no parent-student link, subject, academic-year, attendance, exam, grade, announcement, message, fee, or audit table.
 
-`User.email` is globally unique. Two schools cannot register the same email. `TeacherProfile.departmentId` is a UUID with no foreign key.
+Admin accountant management uses the shared `User` model and `accountant` role; it does not create an additional identity or profile. Accountant account management is school-scoped and soft-deactivation preserves user rows. The schema still has no finance transaction models, so the Accountant admin page reports account counts only and does not display invented transaction data.
+
+`User.email` is globally unique. Two schools cannot register the same email. `TeacherProfile.departmentId` optionally relates to `Department` and is cleared when its department is deleted.
 
 Migrations:
 
@@ -129,6 +134,12 @@ Mounted contracts today:
 | POST     | `/api/v1/admin/teachers/:id`        | Update. Frontend calls PATCH                          |
 | POST     | `/api/v1/admin/teachers/:id/delete` | Delete. Frontend calls DELETE                         |
 | POST     | `/api/v1/admin/teachers/:id/status` | Status. Frontend calls PATCH                          |
+| GET      | `/api/v1/admin/accountants`         | School-scoped, searchable, paginated accountant users |
+| GET      | `/api/v1/admin/accountants/overview`| School-scoped total, active, and inactive counts      |
+| GET      | `/api/v1/admin/accountants/:id`     | Single accountant user; other schools return 404     |
+| POST     | `/api/v1/admin/accountants`         | Creates an accountant login with a hashed password    |
+| PATCH    | `/api/v1/admin/accountants/:id`     | Updates account details; role and school are immutable|
+| PATCH    | `/api/v1/admin/accountants/:id/status` | Sets active state; no hard-delete endpoint         |
 
 Teacher create does not accept or hash a password, then writes `passwordHash` from a field Joi strips. Create cannot produce a user who can log in.
 

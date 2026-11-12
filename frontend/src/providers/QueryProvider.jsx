@@ -1,5 +1,14 @@
 // frontend/src/providers/QueryProvider.jsx
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const ReactQueryDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import("@tanstack/react-query-devtools").then(
+        ({ ReactQueryDevtools: Devtools }) => ({ default: Devtools }),
+      ),
+    )
+  : null;
 
 // One QueryClient instance for the whole app. Sensible SMS-wide defaults:
 // - staleTime: data doesn't refetch on every component mount within 30s,
@@ -23,6 +32,13 @@ const queryClient = new QueryClient({
 
 export default function QueryProvider({ children }) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      {ReactQueryDevtools && (
+        <Suspense fallback={null}>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </Suspense>
+      )}
+    </QueryClientProvider>
   );
 }

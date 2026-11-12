@@ -11,13 +11,13 @@ export const getAllTeachers = async (filters = {}, { signal } = {}) => {
   return response.data;
 };
 
-export const getTeacherClasses = async () => {
-  const response = await apiAxios.get(`${BASE}/classes`);
+export const getTeacherClasses = async ({ signal } = {}) => {
+  const response = await apiAxios.get(`${BASE}/classes`, { signal });
   return response.data.data;
 };
 
-export const getTeacherById = async (id) => {
-  const response = await apiAxios.get(`${BASE}/${id}`);
+export const getTeacherById = async (id, { signal } = {}) => {
+  const response = await apiAxios.get(`${BASE}/${id}`, { signal });
   return response.data.data;
 };
 

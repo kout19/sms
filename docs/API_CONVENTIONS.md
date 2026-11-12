@@ -76,6 +76,15 @@ The refresh token stays in the HTTP-only cookie and never appears in JSON.
 - Sort must be stable, for example `createdAt desc, id desc`.
 - Search is case-insensitive and limited to intended columns.
 
+## Accountant account management
+
+- Admin account routes are mounted at `/api/v1/admin/accountants` and require `manage:users`.
+- Reads and writes are scoped to the authenticated school. Client-supplied school, user, and role fields are rejected.
+- Accountants use `User` with role `accountant`; the current schema has no separate Accountant profile or financial transaction models.
+- Create requires an administrator-provided password, which is hashed by the existing password helper. Responses never include credentials.
+- Deactivation uses `PATCH /:id/status` with `{ "isActive": false }`; accounts are retained, not hard-deleted.
+- `GET /` is paginated and supports `search` and `status=all|active|inactive`. `GET /overview` returns school-scoped account counts.
+
 ## Validation
 
 - Validate with Joi (current choice) at the controller edge.

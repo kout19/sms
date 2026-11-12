@@ -5,7 +5,7 @@ import { overviewKeys } from "@shared/api/queryKeys";
 export function useAdminOverview() {
   return useQuery({
     queryKey: overviewKeys.detail("admin"),
-    queryFn: dashboardApi.getAdminOverview,
+    queryFn: ({ signal }) => dashboardApi.getAdminOverview({ signal }),
     staleTime: 5 * 60 * 1000,
   });
 }

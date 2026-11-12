@@ -1,6 +1,6 @@
 # Development Status
 
-Audit date: 2026-11-06. Students management, student directory search, and admin teacher management were implemented and verified later the same day. The rest of this file still describes the audit, except the Students and Teachers sections, the admin status rows, and the current task. Backend `npm test` is still a script that exits 1. The checks below were direct database and HTTP scripts, plus the admin UI on the Windows Vite server.
+Audit date: 2026-11-06. Students management, student directory search, and admin teacher management were implemented and verified later the same day. Admin accountant account management was implemented on 2026-11-11; other sections remain as previously audited. Backend `npm test` is still a script that exits 1. Verification for each feature is described in its section.
 
 The frontend dev server was already running on port 5173 when the audit started. That only shows the Vite process is up. It does not prove API workflows.
 
@@ -13,7 +13,12 @@ The frontend dev server was already running on port 5173 when the audit started.
 - Login, cookie refresh, memory access token, and Axios 401 refresh. Logout clears the cookie locally.
 - Admin route shell, layout, and navigation covering the planned admin areas.
 - Student and teacher admin screens call real API modules rather than local arrays.
+- Admin Accountant account management uses real, school-scoped API data and TanStack Query.
 - Admin overview hook calls `GET /api/v1/admin/overview`.
+
+### Accountants
+
+The admin Accountant page lists real `User` records with the `accountant` role. It supports debounced server-side name/email/phone search, active-status filtering, pagination, detail view, account edits, password reset by an authorized admin, account creation, and activation/deactivation. Create hashes the required admin-supplied password and assigns the role server-side; role, password hash, and school id are never accepted from the client. Reads and writes require `manage:users` and use the authenticated school scope. Deactivation retains the user record. The current schema has no Accountant profile or financial transaction models, so no profile fields, transaction feed, or finance totals are fabricated. No schema or migration change was needed.
 
 ## Partially implemented
 
@@ -41,7 +46,7 @@ These admin areas render, and their hooks use TanStack Query, but the API module
 
 - Classes (inline array in the page)
 - Departments, subjects, exams, attendance
-- Parents, accountants
+- Parents
 - Announcements, messages
 - Reports, attendance reports, academic reports, financial reports
 - Settings, general settings, user management, roles and permissions
@@ -51,7 +56,7 @@ Other role modules (teacher, student, parent, accountant, department head, super
 ## Missing
 
 - Academic years, departments, sections, and subjects as real tables and APIs.
-- Parent profiles and parent-student links. Accountant profiles.
+- Parent profiles and parent-student links. Accountant profiles are not required by the current role-based `User` model.
 - Attendance, assignments, examinations, gradebooks.
 - Announcements, messages, notifications.
 - Fees, invoices, payments, receipts.

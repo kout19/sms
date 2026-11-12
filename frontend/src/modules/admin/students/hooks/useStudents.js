@@ -28,7 +28,7 @@ export function useStudents(filters = {}) {
 export function useStudent(id) {
   return useQuery({
     queryKey: studentKeys.detail(id),
-    queryFn: () => studentsApi.getStudentById(id),
+    queryFn: ({ signal }) => studentsApi.getStudentById(id, { signal }),
     enabled: Boolean(id),
   });
 }
@@ -71,7 +71,7 @@ export function useDeleteStudent() {
 export function useStudentClasses() {
   return useQuery({
     queryKey: [...studentKeys.all, "classes"],
-    queryFn: studentsApi.getStudentClasses,
+    queryFn: ({ signal }) => studentsApi.getStudentClasses({ signal }),
     staleTime: 60 * 1000,
   });
 }
