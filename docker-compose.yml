@@ -1,29 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: sms-postgres
-    restart: unless-stopped
-
-    environment:
-      POSTGRES_DB: sms
-      POSTGRES_USER: sms_user
-      POSTGRES_PASSWORD: sms_password
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sms_user -d sms"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-    networks:
-      - sms-network
-
   backend:
     build:
       context: .
@@ -43,10 +18,6 @@ services:
       - ./packages:/app/packages
       - /app/backend/node_modules
 
-    depends_on:
-      postgres:
-        condition: service_healthy
-
     networks:
       - sms-network
 
@@ -59,7 +30,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "5174:5174"
+      - "5173:5173"
 
     environment:
       VITE_API_BASE_URL: http://localhost:5000/api/v1
@@ -74,9 +45,6 @@ services:
 
     networks:
       - sms-network
-
-volumes:
-  postgres_data:
 
 networks:
   sms-network:

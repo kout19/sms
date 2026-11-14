@@ -105,7 +105,7 @@ The middleware and “load user from the database” approach are the right base
 
 ## Docker and environment readiness
 
-Compose is present and wired to Postgres 16, backend migrate-on-start, and Vite. Local `.env` files exist for the root, backend, and frontend and were not opened. The root Dockerfile is empty. Readiness of a running stack was not verified because this audit did not start containers.
+Compose runs the backend and Vite frontend; the backend receives the same Neon configuration from `backend/.env` as the Windows Node process. No PostgreSQL service is defined in Compose. The backend image excludes `.env` files and uses Node 22. Neon connectivity was verified from Windows and Docker; the older local PostgreSQL container is stopped and its named volume is preserved. The root Dockerfile is empty.
 
 ## Admin module status
 
@@ -139,4 +139,4 @@ Classes: the class table and student assignment already exist, but the admin Cla
 - Imports are limited to 100 rows and 2 MB. Valid rows are saved together. Invalid rows and duplicates are reported and skipped. If the database rejects the valid batch, none of that batch is kept.
 - Permission typos in the shared map remain.
 - Teacher reads use `manage:teachers` because there is no separate view permission.
-- Port 5173 is already taken on this machine by Docker and a WSL relay, and `localhost` opens that older app. This workspace's Vite dev server uses port 5174. Open `http://localhost:5174`.
+- The standard local frontend port is `http://localhost:5173`. The repo is configured to enforce that port via Vite's `strictPort: true` behavior. If 5173 is already occupied by another process, Vite will fail instead of silently switching ports, so the conflict must be resolved before the app can run on the standard port.

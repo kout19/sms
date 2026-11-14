@@ -58,39 +58,44 @@ const SubjectDetailsModal = ({ isOpen, onClose, subject, onEdit }) => {
             </div>
 
             <div className="p-3.5 bg-slate-50/70 border border-slate-100 rounded-xl space-y-1">
-              <p className="text-xs text-slate-400 font-medium">Grade / Class</p>
+              <p className="text-xs text-slate-400 font-medium">Grades</p>
               <p className="text-sm font-bold text-slate-800">{subject.grade}</p>
             </div>
 
             <div className="p-3.5 bg-slate-50/70 border border-slate-100 rounded-xl space-y-1">
-              <p className="text-xs text-slate-400 font-medium">Students Enrolled</p>
-              <p className="text-sm font-bold text-slate-800">{subject.students ?? 0}</p>
+              <p className="text-xs text-slate-400 font-medium">Academic Year</p>
+              <p className="text-sm font-bold text-slate-800">
+                {subject.academicYear || "Not specified"}
+              </p>
             </div>
 
             <div className="p-3.5 bg-slate-50/70 border border-slate-100 rounded-xl space-y-1">
-              <p className="text-xs text-slate-400 font-medium">Hours / Week</p>
-              <p className="text-sm font-bold text-slate-800">{subject.hoursPerWeek || "3"}h</p>
+              <p className="text-xs text-slate-400 font-medium">Classes Offered</p>
+              <p className="text-sm font-bold text-slate-800">{subject.classCount ?? 0}</p>
             </div>
 
             <div className="p-3.5 bg-slate-50/70 border border-slate-100 rounded-xl space-y-1 col-span-2">
               <p className="text-xs text-slate-400 font-medium">Created</p>
               <p className="text-sm font-bold text-slate-800">
-                {subject.createdDate || "2025-09-01"}
+                {subject.createdAt
+                  ? new Date(subject.createdAt).toLocaleDateString()
+                  : "Unavailable"}
               </p>
             </div>
           </div>
 
           {/* Teacher Card */}
           <div className="p-4 border border-slate-200/80 rounded-xl space-y-2">
-            <p className="text-xs text-slate-400 font-medium">Assigned Teacher</p>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
-                {subject.teacher?.initials || "NA"}
-              </div>
-              <p className="text-sm font-bold text-slate-800">
-                {subject.teacher?.name || "Unassigned"}
-              </p>
-            </div>
+            <p className="text-xs text-slate-400 font-medium">Assigned Teachers</p>
+            {subject.teachers?.length ? (
+              subject.teachers.map((teacher) => (
+                <p key={teacher.id} className="text-sm font-bold text-slate-800">
+                  {teacher.fullName}
+                </p>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">No teachers assigned</p>
+            )}
           </div>
         </div>
 

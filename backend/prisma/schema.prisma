@@ -28,7 +28,10 @@ model School {
   classes          Class[]
   teacherProfiles  TeacherProfile[]
   departments      Department[]
+  subjects         Subject[]
   parentStudentLinks ParentStudent[]
+  subjectClassLinks SubjectClass[]
+  subjectTeacherAssignments SubjectTeacherAssignment[]
 
   @@index([isActive])
   @@map("schools")
@@ -83,6 +86,8 @@ model TeacherProfile {
   qualifications  String?
   employeeId      String?
 
+  subjectTeacherAssignments SubjectTeacherAssignment[]
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -107,6 +112,7 @@ model Department {
   headTeacher   User?    @relation("DepartmentHead", fields: [headTeacherId], references: [id], onDelete: SetNull)
 
   teacherProfiles TeacherProfile[] @relation("DepartmentTeacherProfiles")
+  subjects       Subject[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -180,6 +186,8 @@ model Class {
   homeroomTeacher   User?    @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
 
   students     StudentProfile[]
+  subjectLinks SubjectClass[]
+  subjectTeacherAssignments SubjectTeacherAssignment[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -188,4 +196,71 @@ model Class {
   @@index([schoolId])
   @@index([homeroomTeacherId])
   @@map("classes")
+}
+
+model Subject {
+  id          String   @id @default(uuid()) @db.Uuid
+  schoolId    String   @db.Uuid
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  departmentId String?  @db.Uuid
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  name        String
+  code        String
+  description String?
+  academicYear String?
+  isActive    Boolean  @default(true)
+
+  classLinks  SubjectClass[]
+  teacherAssignments SubjectTeacherAssignment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([schoolId, code])
+  @@unique([schoolId, name])
+  @@index([schoolId, isActive])
+  @@map("subjects")
+}
+
+model SubjectClass {
+  id          String   @id @default(uuid()) @db.Uuid
+  schoolId    String   @db.Uuid
+  subjectId   String   @db.Uuid
+  classId     String   @db.Uuid
+  academicYear String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([subjectId, classId, academicYear])
+  @@index([schoolId, subjectId])
+  @@index([schoolId, classId])
+  @@map("subject_classes")
+}
+
+model SubjectTeacherAssignment {
+  id              String   @id @default(uuid()) @db.Uuid
+  schoolId        String   @db.Uuid
+  teacherProfileId String  @db.Uuid
+  subjectId       String   @db.Uuid
+  classId         String?  @db.Uuid
+  academicYear   String?
+  isPrimary       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  teacherProfile  TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  subject         Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  class           Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@unique([schoolId, teacherProfileId, subjectId, classId, academicYear])
+  @@index([schoolId, subjectId])
+  @@index([schoolId, teacherProfileId])
+  @@map("subject_teacher_assignments")
 }

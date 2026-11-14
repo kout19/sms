@@ -2,10 +2,10 @@ import { BookOpen, CheckCircle2, UserPlus, Building2 } from "lucide-react";
 
 const SubjectMetricsGrid = ({
   data = {
-    totalSubjects: 15,
-    activeSubjects: 14,
-    assignedSubjects: 15,
-    departments: 6,
+    totalSubjects: 0,
+    activeSubjects: 0,
+    assignedSubjects: 0,
+    departments: 0,
   },
   isLoading = false,
 }) => {

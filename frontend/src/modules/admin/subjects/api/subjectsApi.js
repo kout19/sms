@@ -2,228 +2,132 @@ import apiAxios from "../../../../shared/api/axios";
 
 const BASE = "/admin/subjects";
 
-// Initial mock data until backend endpoint `/admin/subjects` is ready
-let MOCK_SUBJECTS = [
-  {
-    id: "s1",
-    name: "Physics",
-    code: "PHY301",
-    department: "Sciences",
-    grade: "Grade 12",
-    students: 87,
-    status: "Inactive",
-    teacher: { name: "Dr. Robert Chen", initials: "RC" },
-  },
-  {
-    id: "s2",
-    name: "Computer Science",
-    code: "CS301",
-    department: "Technology",
-    grade: "Grade 12",
-    students: 76,
-    status: "Active",
-    teacher: { name: "Mr. Kevin Lee", initials: "KL" },
-  },
-  {
-    id: "s3",
-    name: "Economics",
-    code: "ECO301",
-    department: "Humanities",
-    grade: "Grade 12",
-    students: 92,
-    status: "Active",
-    teacher: { name: "Mr. Paul Anderson", initials: "PA" },
-  },
-  {
-    id: "s4",
-    name: "Literature",
-    code: "LIT301",
-    department: "Humanities",
-    grade: "Grade 12",
-    students: 96,
-    status: "Active",
-    teacher: { name: "Ms. Patricia Davis", initials: "PD" },
-  },
-  {
-    id: "s5",
-    name: "English Language",
-    code: "ENG201",
-    department: "Humanities",
-    grade: "Grade 11",
-    students: 118,
-    status: "Active",
-    teacher: { name: "Ms. Sarah Johnson", initials: "SJ" },
-  },
-  {
-    id: "s6",
-    name: "Chemistry",
-    code: "CHEM201",
-    department: "Sciences",
-    grade: "Grade 11",
-    students: 103,
-    status: "Active",
-    teacher: { name: "Ms. Emily Davis", initials: "ED" },
-  },
-  {
-    id: "s7",
-    name: "History",
-    code: "HIST201",
-    department: "Humanities",
-    grade: "Grade 11",
-    students: 98,
-    status: "Active",
-    teacher: { name: "Ms. Linda Martinez", initials: "LM" },
-  },
-  {
-    id: "s8",
-    name: "French",
-    code: "FRN201",
-    department: "Languages",
-    grade: "Grade 11",
-    students: 0,
-    status: "Inactive",
-    teacher: { name: "Ms. Claire Dubois", initials: "CD" },
-  },
-  {
-    id: "s9",
-    name: "Statistics",
-    code: "STAT201",
-    department: "Sciences",
-    grade: "Grade 11",
-    students: 84,
-    status: "Active",
-    teacher: { name: "Dr. Anna Kim", initials: "AK" },
-  },
-  {
-    id: "s10",
-    name: "Mathematics",
-    code: "MATH101",
-    department: "Sciences",
-    grade: "Grade 10",
-    students: 142,
-    status: "Active",
-    teacher: { name: "Mr. James Wilson", initials: "JW" },
-  },
-  {
-    id: "s11",
-    name: "Biology",
-    code: "BIO101",
-    department: "Sciences",
-    grade: "Grade 10",
-    students: 130,
-    status: "Active",
-    teacher: { name: "Mr. Michael Brown", initials: "MB" },
-  },
-  {
-    id: "s12",
-    name: "Geography",
-    code: "GEO101",
-    department: "Humanities",
-    grade: "Grade 10",
-    students: 110,
-    status: "Active",
-    teacher: { name: "Mr. David Thompson", initials: "DT" },
-  },
-  {
-    id: "s13",
-    name: "Art & Design",
-    code: "ART101",
-    department: "Arts",
-    grade: "Grade 10",
-    students: 65,
-    status: "Active",
-    teacher: { name: "Ms. Rachel Green", initials: "MR" },
-  },
-  {
-    id: "s14",
-    name: "Physical Education",
-    code: "PE101",
-    department: "Sports",
-    grade: "Grade 10",
-    students: 180,
-    status: "Active",
-    teacher: { name: "Mr. Tom Harris", initials: "TH" },
-  },
-  {
-    id: "s15",
-    name: "Music",
-    code: "MUS101",
-    department: "Arts",
-    grade: "Grade 10",
-    students: 58,
-    status: "Active",
-    teacher: { name: "Ms. Amy Wilson", initials: "AW" },
-  },
-];
+const normalizeTeacherName = (teacher) => {
+  if (!teacher) return "";
+  if (teacher.fullName) return teacher.fullName;
+  if (teacher.firstName || teacher.lastName) {
+    return `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim();
+  }
+  return teacher.name || "";
+};
+
+const normalizeSubject = (subject) => {
+  const grades = [
+    ...new Set((subject.classes || []).map((classItem) => classItem.grade)),
+  ];
+  const teacher = Array.isArray(subject.teachers) && subject.teachers.length
+    ? subject.teachers[0]
+    : null;
+  const teacherName = normalizeTeacherName(teacher);
+
+  return {
+    ...subject,
+    department: subject.department?.name || "Unassigned",
+    grade: grades.length ? grades.map((grade) => `Grade ${grade}`).join(", ") : "N/A",
+    status: subject.isActive ? "Active" : "Inactive",
+    teacher: teacherName
+      ? {
+          name: teacherName,
+          initials: teacherName
+            .split(" ")
+            .map((part) => part[0])
+            .filter(Boolean)
+            .slice(0, 2)
+            .join("")
+            .toUpperCase(),
+        }
+      : null,
+  };
+};
 
 export const getAllSubjects = async (filters = {}) => {
-  // TODO once backend exists:
-  // const response = await apiAxios.get(BASE, { params: filters });
-  // return response.data;
+  const academicYear = filters.academicYear;
+  const departmentId = filters.departmentId;
+  const response = await apiAxios.get(BASE, {
+    params: {
+      search: filters.search,
+      departmentId:
+        departmentId && departmentId !== "All" ? departmentId : undefined,
+      classId: filters.classId,
+      academicYear:
+        academicYear && academicYear !== "All" ? academicYear : undefined,
+      status: filters.status && filters.status !== "All" ? filters.status.toLowerCase() : undefined,
+      isActive: filters.isActive,
+      page: filters.page,
+      limit: filters.limit,
+    },
+  });
 
-  await new Promise((r) => setTimeout(r, 200));
-
-  let results = [...MOCK_SUBJECTS];
-
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.code.toLowerCase().includes(q) ||
-        s.teacher.name.toLowerCase().includes(q),
-    );
+  const payload = response?.data ?? {};
+  const items = Array.isArray(payload.data)
+    ? payload.data
+    : Array.isArray(payload.items)
+      ? payload.items
+      : null;
+  if (!items) {
+    throw new Error("The subjects API returned an invalid response.");
   }
 
-  if (filters.department && filters.department !== "All") {
-    results = results.filter((s) => s.department === filters.department);
-  }
-
-  if (filters.grade && filters.grade !== "All") {
-    results = results.filter((s) => s.grade === filters.grade);
-  }
-
-  if (filters.status && filters.status !== "All") {
-    results = results.filter((s) => s.status === filters.status);
-  }
-
-  // Calculate dynamic header stats based on current state
-  const stats = {
-    totalSubjects: MOCK_SUBJECTS.length,
-    activeSubjects: MOCK_SUBJECTS.filter((s) => s.status === "Active").length,
-    assignedSubjects: MOCK_SUBJECTS.filter((s) => s.teacher?.name).length,
-    departments: new Set(MOCK_SUBJECTS.map((s) => s.department)).size,
+  return {
+    items: items.map(normalizeSubject),
+    total: Number(payload.meta?.total ?? payload.total ?? items.length),
+    page: Number(payload.meta?.page ?? filters.page ?? 1),
+    totalPages: Number(payload.meta?.totalPages ?? 1),
+    stats: {
+      totalSubjects: Number(
+        payload.stats?.totalSubjects ?? payload.meta?.total ?? items.length,
+      ),
+      activeSubjects: Number(
+        payload.stats?.activeSubjects ??
+          items.filter((subject) => subject.isActive).length,
+      ),
+      assignedSubjects: Number(
+        payload.stats?.assignedSubjects ??
+          items.filter(
+            (subject) =>
+              Array.isArray(subject.teachers) && subject.teachers.length,
+          ).length,
+      ),
+      departments: Number(
+        payload.stats?.departments ??
+          new Set(items.map((subject) => subject.department || "Unassigned"))
+            .size,
+      ),
+    },
   };
+};
 
-  return { items: results, total: results.length, stats };
+export const getSubjectOptions = async () => {
+  const response = await apiAxios.get(`${BASE}/options`);
+  const options = response?.data?.data;
+
+  if (
+    !Array.isArray(options?.departments) ||
+    !Array.isArray(options?.classes) ||
+    !Array.isArray(options?.teachers)
+  ) {
+    throw new Error("The subject options API returned an invalid response.");
+  }
+
+  return options;
 };
 
 export const createSubject = async (payload) => {
-  const newSubject = {
-    id: crypto.randomUUID(),
-    students: 0,
-    status: "Active",
-    ...payload,
-  };
-  MOCK_SUBJECTS.push(newSubject);
-  return newSubject;
+  const response = await apiAxios.post(BASE, payload);
+  return normalizeSubject(response?.data?.data ?? response?.data ?? payload);
 };
 
 export const toggleSubjectStatus = async (id) => {
-  const subject = MOCK_SUBJECTS.find((s) => s.id === id);
-  if (!subject) throw new Error("Subject not found");
-  subject.status = subject.status === "Active" ? "Inactive" : "Active";
-  return subject;
+  const response = await apiAxios.patch(`${BASE}/${id}/status`);
+  return normalizeSubject(response?.data?.data ?? response?.data ?? {});
 };
 
 export const deleteSubject = async (id) => {
-  MOCK_SUBJECTS = MOCK_SUBJECTS.filter((s) => s.id !== id);
+  await apiAxios.delete(`${BASE}/${id}`);
   return id;
 };
 
 export const updateSubject = async ({ id, ...payload }) => {
-  const subject = MOCK_SUBJECTS.find((s) => s.id === id);
-  if (!subject) throw new Error("Subject not found");
-  Object.assign(subject, payload);
-  return subject;
+  const response = await apiAxios.patch(`${BASE}/${id}`, payload);
+  return normalizeSubject(response?.data?.data ?? response?.data ?? {});
 };

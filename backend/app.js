@@ -10,6 +10,7 @@ const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
 const teacherRoutes = require("./modules/teachers/teacher.routes");
 const departmentRoutes = require("./modules/departments/department.routes");
+const subjectRoutes = require("./modules/subjects/subject.routes");
 const accountantRoutes = require("./modules/accountants/accountant.routes");
 const parentRoutes = require("./modules/parents/parent.route");
 
@@ -18,10 +19,9 @@ const app = express();
 const allowedOrigins = new Set(
   [
     process.env.CLIENT_URL,
+    process.env.CORS_ORIGIN,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
   ].filter(Boolean),
 );
 
@@ -52,6 +52,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/students", studentRoutes);
 app.use("/api/v1/admin/departments", departmentRoutes);
+app.use("/api/v1/admin/subjects", subjectRoutes);
+app.use("/api/v1/admin/subjectes", subjectRoutes);
 app.use("/api/v1/admin/accountants", accountantRoutes);
 app.use("/api/v1/admin/parents", parentRoutes);
 

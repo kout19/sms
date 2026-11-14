@@ -28,9 +28,13 @@ const DEPARTMENT_COLORS = {
 const SubjectsTable = ({
   subjects,
   totalCount,
+  totalPages,
   isLoading,
   filters,
+  departments,
+  academicYears,
   onFilterChange,
+  onPageChange,
 }) => {
   const toggleStatusMutation = useToggleSubjectStatus();
   const deleteSubjectMutation = useDeleteSubject();
@@ -135,33 +139,34 @@ const SubjectsTable = ({
 
           {/* Department Filter */}
           <select
-            value={filters.department}
+            value={filters.departmentId}
             onChange={(e) =>
-              onFilterChange({ ...filters, department: e.target.value })
+              onFilterChange({ ...filters, departmentId: e.target.value })
             }
             className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-600 focus:outline-none"
           >
             <option value="All">All Departments</option>
-            <option value="Sciences">Sciences</option>
-            <option value="Technology">Technology</option>
-            <option value="Humanities">Humanities</option>
-            <option value="Languages">Languages</option>
-            <option value="Arts">Arts</option>
-            <option value="Sports">Sports</option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
+              </option>
+            ))}
           </select>
 
-          {/* Grade Filter */}
+          {/* Academic year filter */}
           <select
-            value={filters.grade}
+            value={filters.academicYear}
             onChange={(e) =>
-              onFilterChange({ ...filters, grade: e.target.value })
+              onFilterChange({ ...filters, academicYear: e.target.value })
             }
             className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-600 focus:outline-none"
           >
-            <option value="All">All Grades</option>
-            <option value="Grade 10">Grade 10</option>
-            <option value="Grade 11">Grade 11</option>
-            <option value="Grade 12">Grade 12</option>
+            <option value="All">All Academic Years</option>
+            {academicYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
           </select>
 
           {/* Status Filter */}
@@ -221,12 +226,12 @@ const SubjectsTable = ({
                 </div>
               </th>
               <th
-                onClick={() => handleSort("students")}
+                onClick={() => handleSort("classCount")}
                 className="px-5 py-3 cursor-pointer select-none hover:text-slate-600"
               >
                 <div className="flex items-center gap-1 group">
-                  <span>STUDENTS</span>
-                  {renderSortIcon("students")}
+                  <span>CLASSES</span>
+                  {renderSortIcon("classCount")}
                 </div>
               </th>
               <th
@@ -285,7 +290,7 @@ const SubjectsTable = ({
                   </td>
                   <td className="px-5 py-3.5 text-slate-600">{row.grade}</td>
                   <td className="px-5 py-3.5 text-slate-700 font-semibold">
-                    {row.students}
+                    {row.classCount}
                   </td>
                   <td className="px-5 py-3.5">
                     <span
@@ -392,6 +397,7 @@ const SubjectsTable = ({
                     }}
                   />
                   <EditSubjectModal
+                    key={`edit-${selectedSubject?.id || "none"}`}
                     isOpen={isEditOpen}
                     onClose={() => setIsEditOpen(false)}
                     subject={selectedSubject}
@@ -401,6 +407,7 @@ const SubjectsTable = ({
                     }}
                   />
                   <AssignTeacherModal
+                    key={`assign-${selectedSubject?.id || "none"}`}
                     isOpen={isAssignTeacherOpen}
                     onClose={() => setIsAssignTeacherOpen(false)}
                     subject={selectedSubject}
@@ -418,7 +425,27 @@ const SubjectsTable = ({
           Showing <strong>{sortedSubjects.length}</strong> of{" "}
           <strong>{totalCount}</strong> subjects
         </span>
-        <span>Academic Year 2026–2027</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="disabled:opacity-40"
+            disabled={filters.page <= 1 || isLoading}
+            onClick={() => onPageChange(filters.page - 1)}
+          >
+            Previous
+          </button>
+          <span>
+            Page {filters.page} of {totalPages}
+          </span>
+          <button
+            type="button"
+            className="disabled:opacity-40"
+            disabled={filters.page >= totalPages || isLoading}
+            onClick={() => onPageChange(filters.page + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

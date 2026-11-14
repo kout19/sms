@@ -1,33 +1,12 @@
 const { Pool } = require("pg");
-
-const getConnectionConfig = () => {
-  const connectionString = process.env.DATABASE_URL;
-
-  if (connectionString) {
-    return {
-      connectionString,
-      ssl:
-        process.env.DB_SSL === "true" ||
-        connectionString.includes("sslmode=require")
-          ? { rejectUnauthorized: false }
-          : false,
-    };
-  }
-
-  return {
-    host: process.env.DB_HOST || "localhost",
-    port: Number(process.env.DB_PORT || 5432),
-    database: process.env.DB_NAME || "sms",
-    user: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "postgres",
-    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
-  };
-};
-
-const pool = new Pool(getConnectionConfig());
+const databaseConfig = require("./database-url");
+const pool = new Pool({ connectionString: databaseConfig.connectionString });
 
 pool.on("error", (error) => {
-  console.error("Unexpected PostgreSQL pool error", error);
+  console.error(
+    "Unexpected PostgreSQL pool error",
+    error.code || error.name || "unknown",
+  );
 });
 
 const connectDB = async () => {

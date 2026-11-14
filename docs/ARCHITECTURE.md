@@ -157,7 +157,7 @@ Those issues should be fixed inside each slice, not with a separate caching laye
 
 ## Docker
 
-`docker-compose.yml` defines Postgres 16 (`sms` / `sms_user` / `sms_password` on port 5432), a backend container that runs `prisma migrate deploy` then `npm run dev`, and a Vite frontend on port 5173. The root `Dockerfile` is empty. Compose reads `backend/.env`. Root, backend, and frontend `.env` files exist locally and are gitignored. This audit did not read them and did not start or stop containers.
+`docker-compose.yml` runs the backend and Vite frontend; it does not define a PostgreSQL service. The backend receives its environment from `backend/.env`, which is also the source used by the Windows Node process. Both modes use the same Neon `DATABASE_URL`. The backend image excludes `.env` files from its build context and uses Node 22. Compose runs `prisma migrate deploy` before starting the API. Root, backend, and frontend `.env` files are gitignored.
 
 ## Integrations
 

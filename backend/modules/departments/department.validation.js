@@ -25,8 +25,8 @@ exports.validateCreateDepartment = (payload) =>
 
 exports.validateUpdateDepartment = (payload) =>
   Joi.object({
-    name: textField(120),
-    code: textField(30),
+    name: Joi.string().trim().min(1).max(120),
+    code: Joi.string().trim().min(1).max(30),
     description: optionalText(1000),
     icon: optionalText(50),
     headTeacherId: uuidField,

@@ -8,6 +8,15 @@ export function useSubjects(filters = {}) {
     queryFn: () => subjectApi.getAllSubjects(filters),
   });
 }
+
+export function useSubjectOptions() {
+  return useQuery({
+    queryKey: [...subjectKeys.all, "options"],
+    queryFn: subjectApi.getSubjectOptions,
+    staleTime: 60 * 1000,
+  });
+}
+
 export function useCreateSubject() {
   const queryClient = useQueryClient();
   return useMutation({

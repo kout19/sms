@@ -1,7 +1,7 @@
 import { useState } from "react";
 import SubjectStatCards from "../cards/SubjectStatCards";
 import SubjectsTable from "../components/SubjectTable";
-import { useSubjects } from "../hooks/useSubjects";
+import { useSubjectOptions, useSubjects } from "../hooks/useSubjects";
 import AddSubjectModal from "../components/AddSubjectModal";
 import { Plus } from "lucide-react";
 
@@ -9,18 +9,21 @@ const SubjectsPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
-    department: "All",
-    grade: "All",
+    departmentId: "All",
+    academicYear: "All",
     status: "All",
+    page: 1,
+    limit: 20,
   });
 
   // Data fetching handled entirely via TanStack Query Hook
   const { data, isLoading, error } = useSubjects(filters);
+  const { data: options, error: optionsError } = useSubjectOptions();
 
   if (error) {
     return (
       <div className="p-6 text-rose-600 bg-rose-50 rounded-lg">
-        Failed to load subjects data.
+        Failed to load subjects data. {error.message}
       </div>
     );
   }
@@ -47,6 +50,12 @@ const SubjectsPage = () => {
         </div>
       </div>
 
+      {optionsError && (
+        <p className="p-4 text-rose-600 bg-rose-50 rounded-lg" role="alert">
+          Failed to load subject filter options. {optionsError.message}
+        </p>
+      )}
+
       {/* Top Cards powered by server response stats */}
       <SubjectStatCards data={data?.stats} isLoading={isLoading} />
 
@@ -54,9 +63,17 @@ const SubjectsPage = () => {
       <SubjectsTable
         subjects={data?.items || []}
         totalCount={data?.total || 0}
+        totalPages={data?.totalPages || 1}
         isLoading={isLoading}
         filters={filters}
-        onFilterChange={setFilters}
+        departments={options?.departments || []}
+        academicYears={[
+          ...new Set((options?.classes || []).map((item) => item.academicYear)),
+        ]}
+        onFilterChange={(nextFilters) =>
+          setFilters({ ...nextFilters, page: 1 })
+        }
+        onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
       />
       <AddSubjectModal
         isOpen={isAddModalOpen}

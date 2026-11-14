@@ -65,7 +65,7 @@ const AuthProvider = ({ children }) => {
   const bootstrapStartedRef = useRef(false);
 
   // Prevent unnecessary refresh calls.
-  const lastRefreshAtRef = useRef(0);
+  const lastRefreshAttemptAtRef = useRef(0);
 
   // Prevent simultaneous refresh operations.
   const refreshPromiseRef = useRef(null);
@@ -118,8 +118,6 @@ const AuthProvider = ({ children }) => {
             }),
           );
 
-          lastRefreshAtRef.current = Date.now();
-
           return true;
         } catch (error) {
           // No valid refresh cookie/session.
@@ -129,6 +127,7 @@ const AuthProvider = ({ children }) => {
 
           return false;
         } finally {
+          lastRefreshAttemptAtRef.current = Date.now();
           dispatch(completeAuthBootstrap());
 
           if (!silent) {
@@ -220,7 +219,7 @@ const AuthProvider = ({ children }) => {
     const checkSession = async () => {
       const now = Date.now();
 
-      if (now - lastRefreshAtRef.current < SESSION_REFRESH_INTERVAL) {
+      if (now - lastRefreshAttemptAtRef.current < SESSION_REFRESH_INTERVAL) {
         return;
       }
 
