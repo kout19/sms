@@ -4,9 +4,41 @@ const authorize = require("../../middlewares/authorize");
 const tenantScope = require("../../middlewares/tenantScope");
 const { PERMISSIONS } = require("@packages/shared");
 const controller = require("./attendance.controller");
+const reportController = require("./attendanceReport.controller");
 
 const router = express.Router();
 router.use(authenticate, tenantScope);
+
+router.get(
+  "/reports/options",
+  authorize(PERMISSIONS.VIEW_ATTENDANCE),
+  reportController.getOptions,
+);
+router.get(
+  "/reports/export",
+  authorize(PERMISSIONS.VIEW_ATTENDANCE),
+  reportController.exportReport,
+);
+router.get(
+  "/reports/students",
+  authorize(PERMISSIONS.VIEW_ATTENDANCE),
+  reportController.getStudents,
+);
+router.get(
+  "/reports/records",
+  authorize(PERMISSIONS.VIEW_ATTENDANCE),
+  reportController.getRecords,
+);
+router.get(
+  "/reports/detail",
+  authorize(PERMISSIONS.VIEW_ATTENDANCE),
+  reportController.getDetail,
+);
+router.get(
+  "/reports",
+  authorize(PERMISSIONS.VIEW_ATTENDANCE),
+  reportController.getReport,
+);
 
 router.get("/stats", authorize(PERMISSIONS.VIEW_ATTENDANCE), controller.getSummary);
 router.get("/trend", authorize(PERMISSIONS.VIEW_ATTENDANCE), controller.getTrend);

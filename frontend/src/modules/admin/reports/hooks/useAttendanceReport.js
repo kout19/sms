@@ -1,45 +1,51 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import * as attendanceApi from "../api/attendanceApi";
-import { makeResourceKeys } from "@shared/api/queryKeys";
+import { attendanceKeys } from "@shared/api/queryKeys";
 
-const reportKeys = makeResourceKeys("attendances");
-const section = (name, filters) => [...reportKeys.all, name, filters];
+export const attendanceReportKeys = {
+  options: [...attendanceKeys.all, "report-options"],
+  report: (filters) => [...attendanceKeys.all, "report", filters],
+  students: (params) => [...attendanceKeys.all, "report-students", params],
+  records: (params) => [...attendanceKeys.all, "report-records", params],
+  detail: (params) => [...attendanceKeys.all, "report-detail", params],
+};
 
-export function useAttendanceReportOverview() {
+export function useAttendanceReportOptions() {
   return useQuery({
-    queryKey: reportKeys.detail("overview"),
-    queryFn: attendanceApi.getAttendanceOverview,
+    queryKey: attendanceReportKeys.options,
+    queryFn: attendanceApi.getAttendanceReportOptions,
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useAttendanceTrend(filters) {
+export function useAttendanceReport(filters, enabled = true) {
   return useQuery({
-    queryKey: section("trend", filters),
-    queryFn: () => attendanceApi.getAttendanceTrend(filters),
+    queryKey: attendanceReportKeys.report(filters),
+    queryFn: () => attendanceApi.getAttendanceReport(filters),
+    enabled,
   });
 }
-export function useMonthlyBreakdown(filters) {
+
+export function useAttendanceReportStudents(params, enabled = true) {
   return useQuery({
-    queryKey: section("monthly", filters),
-    queryFn: () => attendanceApi.getMonthlyBreakdown(filters),
+    queryKey: attendanceReportKeys.students(params),
+    queryFn: () => attendanceApi.getAttendanceReportStudents(params),
+    enabled,
   });
 }
-export function useGradeSummary(filters) {
+
+export function useAttendanceReportRecords(params, enabled = true) {
   return useQuery({
-    queryKey: section("gradeSummary", filters),
-    queryFn: () => attendanceApi.getGradeSummary(filters),
+    queryKey: attendanceReportKeys.records(params),
+    queryFn: () => attendanceApi.getAttendanceReportRecords(params),
+    enabled,
   });
 }
-export function useDetailedAttendanceRecords(filters) {
+
+export function useAttendanceReportDetail(params, enabled = true) {
   return useQuery({
-    queryKey: section("detailed", filters),
-    queryFn: () => attendanceApi.getDetailedAttendanceRecords(filters),
-  });
-}
-export function useChronicAbsentees(filters) {
-  return useQuery({
-    queryKey: section("chronicAbsentees", filters),
-    queryFn: () => attendanceApi.getChronicAbsentees(filters),
+    queryKey: attendanceReportKeys.detail(params),
+    queryFn: () => attendanceApi.getAttendanceReportDetail(params),
+    enabled,
   });
 }

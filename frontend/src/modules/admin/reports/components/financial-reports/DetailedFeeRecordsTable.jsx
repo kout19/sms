@@ -29,6 +29,8 @@ export default function DetailedFeeRecordsTable({ filters }) {
 
       {isLoading ? (
         <p className="px-6 py-8 text-sm text-gray-400">Loading records...</p>
+      ) : records.length === 0 ? (
+        <p className="px-6 py-8 text-sm text-gray-500">No financial records are available for the selected filters.</p>
       ) : (
         <div className="overflow-x-auto">
           <div className="min-w-[900px]">

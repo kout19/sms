@@ -5,6 +5,15 @@ export default function RevenueByFeeTypeCard({ filters }) {
   const { data, isLoading } = useRevenueByFeeType(filters);
   if (isLoading || !data) return null;
 
+  if (!Array.isArray(data.categories) || data.categories.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        <h3 className="font-semibold text-gray-900">Revenue by Fee Type</h3>
+        <p className="mt-3 text-sm text-gray-500">No fee-type revenue data is available for the current tenant.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <h3 className="font-semibold text-gray-900">Revenue by Fee Type</h3>

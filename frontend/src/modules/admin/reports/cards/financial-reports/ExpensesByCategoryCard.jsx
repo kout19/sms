@@ -14,6 +14,15 @@ export default function ExpensesByCategoryCard({ filters }) {
   const { data, isLoading } = useExpensesByCategory(filters);
   if (isLoading || !data) return null;
 
+  if (!Array.isArray(data.categories) || data.categories.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        <h3 className="font-semibold text-gray-900">Expenses by Category</h3>
+        <p className="mt-3 text-sm text-gray-500">No expense records are available for the selected reporting period.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <h3 className="font-semibold text-gray-900">Expenses by Category</h3>
@@ -31,7 +40,7 @@ export default function ExpensesByCategoryCard({ filters }) {
               <div className="flex items-center justify-between text-sm mb-1">
                 <span className="text-gray-700">{c.category}</span>
                 <span className="font-semibold text-gray-900">
-                  ${c.amount.toLocaleString()}{" "}
+                  ${c.amount.toLocaleString()} {" "}
                   <span className="text-gray-400 font-normal">({c.pct}%)</span>
                 </span>
               </div>

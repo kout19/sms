@@ -17,6 +17,7 @@ const classRoutes = require("./modules/classes/class.routes");
 const sectionRoutes = require("./modules/classes/section.routes");
 const examRoutes = require("./modules/exams/exam.routes");
 const attendanceRoutes = require("./modules/attendance/attendance.routes");
+const reportsRoutes = require("./modules/reports/reports.routes");
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use("/api/v1/admin/classes", classRoutes);
 app.use("/api/v1/admin/sections", sectionRoutes);
 app.use("/api/v1/admin/exams", examRoutes);
 app.use("/api/v1/admin/attendance", attendanceRoutes);
+app.use("/api/v1/admin", reportsRoutes);
 
 //-----Teachers routes-----
 

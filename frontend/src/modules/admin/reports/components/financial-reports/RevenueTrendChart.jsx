@@ -11,6 +11,8 @@ export default function RevenueTrendChart({ filters }) {
 
       {isLoading ? (
         <p className="text-sm text-gray-400">Loading...</p>
+      ) : data.length === 0 ? (
+        <p className="text-sm text-gray-500">No financial history is available for the selected filters.</p>
       ) : (
         <>
           <ResponsiveContainer width="100%" height={240}>
