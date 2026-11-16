@@ -18,6 +18,14 @@ enum UserRole {
   accountant
 }
 
+enum ExamStatus {
+  draft
+  scheduled
+  ongoing
+  completed
+  cancelled
+}
+
 model School {
   id                        String                     @id @default(uuid()) @db.Uuid
   name                      String
@@ -37,6 +45,7 @@ model School {
   parentStudentLinks        ParentStudent[]
   subjectClassLinks         SubjectClass[]
   subjectTeacherAssignments SubjectTeacherAssignment[]
+  exams                     Exam[]
 
   @@index([isActive])
   @@map("schools")
@@ -233,6 +242,7 @@ model AcademicYear {
   isActive    Boolean      @default(true)
   sections    Section[]
   enrollments Enrollment[]
+  exams       Exam[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -259,6 +269,7 @@ model Section {
   legacyClassId     String?      @unique @db.Uuid
   legacyClass       LegacyClass? @relation(fields: [legacyClassId], references: [id], onDelete: SetNull)
   enrollments       Enrollment[]
+  exams             Exam[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
@@ -308,6 +319,7 @@ model Subject {
 
   classLinks         SubjectClass[]
   teacherAssignments SubjectTeacherAssignment[]
+  exams              Exam[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -316,6 +328,40 @@ model Subject {
   @@unique([schoolId, name])
   @@index([schoolId, isActive])
   @@map("subjects")
+}
+
+model Exam {
+  id             String     @id @default(uuid()) @db.Uuid
+  schoolId       String     @db.Uuid
+  academicYearId String     @db.Uuid
+  sectionId      String     @db.Uuid
+  subjectId      String     @db.Uuid
+  name           String
+  description    String?
+  type           String
+  term           String?
+  examDate       DateTime   @db.Date
+  startTime      String?    @db.VarChar(5)
+  endTime        String?    @db.VarChar(5)
+  durationMinutes Int?
+  totalMarks     Decimal    @db.Decimal(8, 2)
+  passingMarks   Decimal    @db.Decimal(8, 2)
+  status         ExamStatus @default(draft)
+  archivedAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  school       School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  section      Section      @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  subject      Subject      @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@unique([schoolId, academicYearId, sectionId, subjectId, name, examDate], map: "exams_dedupe_key")
+  @@index([schoolId, academicYearId, status, archivedAt])
+  @@index([schoolId, sectionId, examDate])
+  @@index([schoolId, subjectId, examDate])
+  @@index([schoolId, examDate])
+  @@map("exams")
 }
 
 model SubjectClass {

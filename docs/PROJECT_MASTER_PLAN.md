@@ -47,7 +47,7 @@ Students, teachers, and admin accountant account management have mounted APIs an
 
 ### Phase 4 — Academic operations
 
-Attendance, exams, assignments, and grades have admin or role UI shells and empty or unmounted backend files. No attendance or grade tables exist.
+Attendance, assignments, and grades have admin or role UI shells and empty or unmounted backend files. The Admin Exams slice now has school-scoped CRUD and a Prisma migration; results and gradebook integration remain out of scope. No attendance or grade tables exist.
 
 ### Phase 5 — Communication
 

@@ -1,78 +1,61 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { examApi } from "../api/examApi";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import * as examApi from "../api/examApi";
 
 export const examKeys = {
   all: ["exams"],
-  stats: () => [...examKeys.all, "stats"],
-  list: (filters) => [...examKeys.all, "list", filters],
+  lists: () => [...examKeys.all, "list"],
+  list: (filters) => [...examKeys.lists(), filters],
+  stats: (filters) => [...examKeys.all, "stats", filters],
+  options: () => [...examKeys.all, "options"],
+  details: () => [...examKeys.all, "detail"],
+  detail: (id) => [...examKeys.details(), id],
 };
 
-// Hook to fetch exam statistics
-export function useExamStats() {
-  return useQuery({
-    queryKey: examKeys.stats(),
-    queryFn: () => examApi.getExamStats(),
-  });
-}
-
-// Hook to fetch filtered/sorted exam lists
-export function useExams(filters = {}) {
+export function useExams(filters) {
   return useQuery({
     queryKey: examKeys.list(filters),
-    queryFn: () => examApi.getExams(filters),
+    queryFn: ({ signal }) => examApi.getExams(filters, { signal }),
+    placeholderData: keepPreviousData,
   });
 }
 
-// Hook to create an exam
-export function useCreateExam() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: examApi.createExam,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examKeys.all }),
+export function useExamOptions() {
+  return useQuery({
+    queryKey: examKeys.options(),
+    queryFn: ({ signal }) => examApi.getExamOptions({ signal }),
+    staleTime: 60 * 1000,
   });
 }
 
-// Hook to publish an exam
-export function usePublishExam() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: examApi.publishExam,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examKeys.all }),
+export function useExamStats(filters = {}) {
+  return useQuery({
+    queryKey: examKeys.stats(filters),
+    queryFn: ({ signal }) => examApi.getExamStats(filters, { signal }),
   });
 }
-
-// Hook to archive an exam
-export function useArchiveExam() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: examApi.archiveExam,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examKeys.all }),
-  });
-}
-
-// Hook to delete an exam
-export function useDeleteExam() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: examApi.deleteExam,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examKeys.all }),
-  });
-
-}
-// get details of a single exam by ID
 
 export function useExamDetails(id) {
   return useQuery({
-    queryKey: [...examKeys.all, "detail", id],
-    queryFn: () => examApi.getExamById(id),
-    enabled: !!id, // Only fetch when an ID is present
+    queryKey: examKeys.detail(id),
+    queryFn: ({ signal }) => examApi.getExamById(id, { signal }),
+    enabled: Boolean(id),
   });
 }
-// update data
-export function useUpdateExam() {
+
+const useExamMutation = (mutationFn) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: examApi.updateExam,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examKeys.all }),
+    mutationFn,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: examKeys.all }),
   });
-}
+};
+
+export const useCreateExam = () => useExamMutation(examApi.createExam);
+export const useUpdateExam = () => useExamMutation(examApi.updateExam);
+export const useDeleteExam = () => useExamMutation(examApi.deleteExam);

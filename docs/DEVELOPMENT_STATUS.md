@@ -45,7 +45,7 @@ The admin list is a table in the same layout as students: name and employee ID, 
 These admin areas render, and their hooks use TanStack Query, but the API modules return in-memory data:
 
 - Classes (inline array in the page)
-- Departments, subjects, exams, attendance
+- Departments, subjects, attendance
 - Parents
 - Announcements, messages
 - Reports, attendance reports, academic reports, financial reports
@@ -57,7 +57,7 @@ Other role modules (teacher, student, parent, accountant, department head, super
 
 - Academic years, departments, sections, and subjects as real tables and APIs.
 - Parent profiles and parent-student links. Accountant profiles are not required by the current role-based `User` model.
-- Attendance, assignments, examinations, gradebooks.
+- Attendance, assignments, gradebooks.
 - Announcements, messages, notifications.
 - Fees, invoices, payments, receipts.
 - File storage, email, SMS, AI.
@@ -117,7 +117,8 @@ Compose runs the backend and Vite frontend; the backend receives the same Neon c
 | Classes                           | Mock    | None                                                 | Model exists      | Required for real student placement     |
 | Departments, subjects             | Mock    | None                                                 | None              | After classes                           |
 | Parents, accountants              | Mock    | None                                                 | Role enum only    | After students and teachers             |
-| Attendance, exams                 | Mock    | Empty files                                          | None              | After people and classes                |
+| Attendance                        | Mock    | Empty files                                          | None              | After people and classes                |
+| Exams                             | Working | School-scoped CRUD, filters, options, pagination     | Model and migration created; not applied | Admin exams; live DB verification pending |
 | Reports, finance                  | Mock    | None                                                 | None              | After operational data                  |
 | Messages, announcements, settings | Mock    | None                                                 | None              | Later                                   |
 
