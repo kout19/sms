@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 const textField = (maxLength) =>
-  Joi.string().trim().min(1).max(maxLength).required();
+  Joi.string().trim().min(1).max(maxLength).required().empty("");
 
 const optionalText = (maxLength) =>
   Joi.string().trim().max(maxLength).allow(null, "").empty("");
@@ -10,6 +10,13 @@ const uuidField = Joi.string()
   .guid({ version: ["uuidv4", "uuidv1"] })
   .allow(null, "")
   .empty("");
+
+const normalizeErrorPath = (detail) => {
+  const path = Array.isArray(detail.path) ? detail.path : [];
+  return path.length > 0 ? path.join(".") : "value";
+};
+
+const cleanErrorMessage = (message = "") => message.replace(/"/g, "");
 
 exports.validateCreateDepartment = (payload) =>
   Joi.object({
@@ -37,7 +44,7 @@ exports.validateUpdateDepartment = (payload) =>
     .validate(payload, { abortEarly: false, stripUnknown: true });
 
 exports.validationErrorItems = (error) =>
-  error.details.map((detail) => ({
-    field: detail.path.join("."),
-    message: detail.message.replaceAll('"', ""),
+  (error?.details ?? []).map((detail) => ({
+    field: normalizeErrorPath(detail),
+    message: cleanErrorMessage(detail.message),
   }));

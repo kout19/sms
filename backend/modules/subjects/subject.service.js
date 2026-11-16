@@ -160,7 +160,7 @@ const ensureSchoolReference = async ({
   }
 
   if (classIds.length) {
-    const validClasses = await prisma.class.findMany({
+    const validClasses = await prisma.legacyClass.findMany({
       where: {
         id: { in: classIds },
         schoolId,
@@ -311,8 +311,13 @@ exports.listSubjectOptions = async (schoolId) => {
       select: { id: true, name: true, code: true, isActive: true },
       orderBy: { name: "asc" },
     }),
-    prisma.class.findMany({
-      where: { schoolId },
+    prisma.legacyClass.findMany({
+      where: {
+        schoolId,
+        sectionRecord: {
+          is: { isActive: true, class: { is: { isActive: true } } },
+        },
+      },
       select: {
         id: true,
         name: true,

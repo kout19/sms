@@ -7,6 +7,7 @@ datasource db {
   provider   = "postgresql"
   extensions = [pg_trgm]
 }
+
 enum UserRole {
   super_admin
   admin
@@ -18,19 +19,23 @@ enum UserRole {
 }
 
 model School {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  slug      String?  @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users            User[]
-  classes          Class[]
-  teacherProfiles  TeacherProfile[]
-  departments      Department[]
-  subjects         Subject[]
-  parentStudentLinks ParentStudent[]
-  subjectClassLinks SubjectClass[]
+  id                        String                     @id @default(uuid()) @db.Uuid
+  name                      String
+  slug                      String?                    @unique
+  isActive                  Boolean                    @default(true)
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  users                     User[]
+  classes                   Class[]
+  legacyClasses             LegacyClass[]
+  academicYears             AcademicYear[]
+  sections                  Section[]
+  enrollments               Enrollment[]
+  teacherProfiles           TeacherProfile[]
+  departments               Department[]
+  subjects                  Subject[]
+  parentStudentLinks        ParentStudent[]
+  subjectClassLinks         SubjectClass[]
   subjectTeacherAssignments SubjectTeacherAssignment[]
 
   @@index([isActive])
@@ -57,7 +62,8 @@ model User {
   teacherProfile      TeacherProfile?
   studentProfile      StudentProfile?
   parentStudentLinks  ParentStudent[] @relation("ParentStudentParent")
-  homeroomClasses     Class[]         @relation("HomeroomTeacher")
+  homeroomClasses     LegacyClass[]   @relation("HomeroomTeacher")
+  sectionHomerooms    Section[]       @relation("SectionHomeroomTeacher")
   departmentHeads     Department[]    @relation("DepartmentHead")
 
   @@index([schoolId])
@@ -74,22 +80,22 @@ model User {
 }
 
 model TeacherProfile {
-  id              String   @id @default(uuid()) @db.Uuid
-  userId          String   @unique @db.Uuid
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schoolId        String   @db.Uuid
-  school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @unique @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId String @db.Uuid
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  departmentId    String?  @db.Uuid
-  department      Department? @relation("DepartmentTeacherProfiles", fields: [departmentId], references: [id], onDelete: SetNull)
-  hireDate        DateTime?
-  qualifications  String?
-  employeeId      String?
+  departmentId   String?     @db.Uuid
+  department     Department? @relation("DepartmentTeacherProfiles", fields: [departmentId], references: [id], onDelete: SetNull)
+  hireDate       DateTime?
+  qualifications String?
+  employeeId     String?
 
   subjectTeacherAssignments SubjectTeacherAssignment[]
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([schoolId, employeeId])
   @@index([schoolId])
@@ -98,24 +104,24 @@ model TeacherProfile {
 }
 
 model Department {
-  id            String   @id @default(uuid()) @db.Uuid
-  schoolId      String   @db.Uuid
-  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid()) @db.Uuid
+  schoolId String @db.Uuid
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  name          String
-  code          String
-  description   String?
-  icon          String?
-  isActive      Boolean  @default(true)
+  name        String
+  code        String
+  description String?
+  icon        String?
+  isActive    Boolean @default(true)
 
-  headTeacherId String?  @db.Uuid
-  headTeacher   User?    @relation("DepartmentHead", fields: [headTeacherId], references: [id], onDelete: SetNull)
+  headTeacherId String? @db.Uuid
+  headTeacher   User?   @relation("DepartmentHead", fields: [headTeacherId], references: [id], onDelete: SetNull)
 
   teacherProfiles TeacherProfile[] @relation("DepartmentTeacherProfiles")
-  subjects       Subject[]
+  subjects        Subject[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([schoolId, code])
   @@unique([schoolId, name])
@@ -124,29 +130,30 @@ model Department {
 }
 
 model StudentProfile {
-  id              String   @id @default(uuid()) @db.Uuid
-  userId          String   @unique @db.Uuid
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  admissionNo     String?  @unique
-  dateOfBirth     DateTime?
-  gender          String?
-  enrollmentDate  DateTime?
+  admissionNo    String?   @unique
+  dateOfBirth    DateTime?
+  gender         String?
+  enrollmentDate DateTime?
 
-  classId         String?  @db.Uuid
-  class           Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+  classId String?      @db.Uuid
+  class   LegacyClass? @relation(fields: [classId], references: [id], onDelete: SetNull)
 
-  previousSchool  String?
-  medicalNotes    String?
-  address         String?
-  guardianName    String?
-  guardianPhone   String?
-  guardianEmail   String?
+  previousSchool String?
+  medicalNotes   String?
+  address        String?
+  guardianName   String?
+  guardianPhone  String?
+  guardianEmail  String?
 
-  parentLinks     ParentStudent[]
+  parentLinks ParentStudent[]
+  enrollments Enrollment[]
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([classId])
   @@index([admissionNo(ops: raw("gin_trgm_ops"))], map: "student_profiles_admission_trgm_idx", type: Gin)
@@ -170,27 +177,27 @@ model ParentStudent {
   @@map("parent_students")
 }
 
+model LegacyClass {
+  id       String @id @default(uuid()) @db.Uuid
+  schoolId String @db.Uuid
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-model Class {
-  id           String   @id @default(uuid()) @db.Uuid
-  schoolId     String   @db.Uuid
-  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name         String // "Grade 10A"
+  grade        String // "10"
+  section      String // "A"
+  academicYear String // "2026-2027"
+  capacity     Int? // optional max students
 
-  name         String                          // "Grade 10A"
-  grade        String                          // "10"
-  section      String                          // "A"
-  academicYear String                          // "2026-2027"
-  capacity     Int?                            // optional max students
+  homeroomTeacherId String? @db.Uuid
+  homeroomTeacher   User?   @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
 
-  homeroomTeacherId String?  @db.Uuid
-  homeroomTeacher   User?    @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
-
-  students     StudentProfile[]
-  subjectLinks SubjectClass[]
+  students                  StudentProfile[]
+  subjectLinks              SubjectClass[]
   subjectTeacherAssignments SubjectTeacherAssignment[]
+  sectionRecord             Section?
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([schoolId, grade, section, academicYear])
   @@index([schoolId])
@@ -198,25 +205,112 @@ model Class {
   @@map("classes")
 }
 
-model Subject {
-  id          String   @id @default(uuid()) @db.Uuid
-  schoolId    String   @db.Uuid
-  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  departmentId String?  @db.Uuid
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-
+model Class {
+  id          String    @id @default(uuid()) @db.Uuid
+  schoolId    String    @db.Uuid
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   name        String
   code        String
+  grade       String
   description String?
-  academicYear String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean   @default(true)
+  sections    Section[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  classLinks  SubjectClass[]
+  @@unique([schoolId, code])
+  @@unique([schoolId, grade])
+  @@index([schoolId, isActive])
+  @@map("school_classes")
+}
+
+model AcademicYear {
+  id          String       @id @default(uuid()) @db.Uuid
+  schoolId    String       @db.Uuid
+  school      School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name        String
+  isCurrent   Boolean      @default(false)
+  isActive    Boolean      @default(true)
+  sections    Section[]
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([schoolId, name])
+  @@index([schoolId, isActive])
+  @@map("academic_years")
+}
+
+model Section {
+  id                String       @id @default(uuid()) @db.Uuid
+  schoolId          String       @db.Uuid
+  school            School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classId           String       @db.Uuid
+  class             Class        @relation(fields: [classId], references: [id], onDelete: Restrict)
+  name              String
+  code              String
+  academicYearId    String       @db.Uuid
+  academicYear      AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  capacity          Int?
+  room              String?
+  isActive          Boolean      @default(true)
+  homeroomTeacherId String?      @db.Uuid
+  homeroomTeacher   User?        @relation("SectionHomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
+  legacyClassId     String?      @unique @db.Uuid
+  legacyClass       LegacyClass? @relation(fields: [legacyClassId], references: [id], onDelete: SetNull)
+  enrollments       Enrollment[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([schoolId, classId, academicYearId, name])
+  @@unique([schoolId, classId, academicYearId, code])
+  @@index([schoolId, academicYearId, isActive])
+  @@index([classId, academicYearId])
+  @@index([homeroomTeacherId])
+  @@map("sections")
+}
+
+model Enrollment {
+  id               String         @id @default(uuid()) @db.Uuid
+  schoolId         String         @db.Uuid
+  school           School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentProfileId String         @db.Uuid
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Restrict)
+  sectionId        String         @db.Uuid
+  section          Section        @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  academicYearId   String         @db.Uuid
+  academicYear     AcademicYear   @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  isActive         Boolean        @default(true)
+  enrolledAt       DateTime       @default(now())
+  endedAt          DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([schoolId, studentProfileId, sectionId, academicYearId])
+  @@index([schoolId, sectionId, academicYearId, isActive])
+  @@index([studentProfileId, academicYearId])
+  @@map("enrollments")
+}
+
+model Subject {
+  id       String @id @default(uuid()) @db.Uuid
+  schoolId String @db.Uuid
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  departmentId String?     @db.Uuid
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  name         String
+  code         String
+  description  String?
+  academicYear String?
+  isActive     Boolean @default(true)
+
+  classLinks         SubjectClass[]
   teacherAssignments SubjectTeacherAssignment[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([schoolId, code])
   @@unique([schoolId, name])
@@ -225,17 +319,17 @@ model Subject {
 }
 
 model SubjectClass {
-  id          String   @id @default(uuid()) @db.Uuid
-  schoolId    String   @db.Uuid
-  subjectId   String   @db.Uuid
-  classId     String   @db.Uuid
+  id           String   @id @default(uuid()) @db.Uuid
+  schoolId     String   @db.Uuid
+  subjectId    String   @db.Uuid
+  classId      String   @db.Uuid
   academicYear String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  school  School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  subject Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  class   LegacyClass @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([subjectId, classId, academicYear])
   @@index([schoolId, subjectId])
@@ -244,20 +338,20 @@ model SubjectClass {
 }
 
 model SubjectTeacherAssignment {
-  id              String   @id @default(uuid()) @db.Uuid
-  schoolId        String   @db.Uuid
-  teacherProfileId String  @db.Uuid
-  subjectId       String   @db.Uuid
-  classId         String?  @db.Uuid
-  academicYear   String?
-  isPrimary       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(uuid()) @db.Uuid
+  schoolId         String   @db.Uuid
+  teacherProfileId String   @db.Uuid
+  subjectId        String   @db.Uuid
+  classId          String?  @db.Uuid
+  academicYear     String?
+  isPrimary        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  teacherProfile  TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
-  subject         Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  class           Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+  school         School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  subject        Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  class          LegacyClass?   @relation(fields: [classId], references: [id], onDelete: SetNull)
 
   @@unique([schoolId, teacherProfileId, subjectId, classId, academicYear])
   @@index([schoolId, subjectId])

@@ -16,5 +16,14 @@ if (typeof prisma.subject === "undefined") {
     "Generated Prisma Client is missing the Subject model. Run `npm run db:generate` in backend and restart the server.",
   );
 }
+if (
+  typeof prisma.class === "undefined" ||
+  typeof prisma.section === "undefined" ||
+  typeof prisma.enrollment === "undefined"
+) {
+  throw new Error(
+    "Generated Prisma Client is missing class management models. Run `npm run db:generate` in backend and restart the server.",
+  );
+}
 
 module.exports = prisma;

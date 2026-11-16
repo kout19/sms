@@ -13,6 +13,8 @@ const departmentRoutes = require("./modules/departments/department.routes");
 const subjectRoutes = require("./modules/subjects/subject.routes");
 const accountantRoutes = require("./modules/accountants/accountant.routes");
 const parentRoutes = require("./modules/parents/parent.route");
+const classRoutes = require("./modules/classes/class.routes");
+const sectionRoutes = require("./modules/classes/section.routes");
 
 const app = express();
 
@@ -56,6 +58,8 @@ app.use("/api/v1/admin/subjects", subjectRoutes);
 app.use("/api/v1/admin/subjectes", subjectRoutes);
 app.use("/api/v1/admin/accountants", accountantRoutes);
 app.use("/api/v1/admin/parents", parentRoutes);
+app.use("/api/v1/admin/classes", classRoutes);
+app.use("/api/v1/admin/sections", sectionRoutes);
 
 //-----Teachers routes-----
 

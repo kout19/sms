@@ -137,8 +137,13 @@ const assertEmployeeIdAvailable = async (schoolId, employeeId, excludeUserId) =>
 };
 
 exports.listClassesForSchool = (schoolId) =>
-  prisma.class.findMany({
-    where: { schoolId },
+  prisma.legacyClass.findMany({
+    where: {
+      schoolId,
+      sectionRecord: {
+        is: { isActive: true, class: { is: { isActive: true } } },
+      },
+    },
     select: CLASS_BRIEF_SELECT,
     orderBy: [{ academicYear: "desc" }, { grade: "asc" }, { section: "asc" }],
   });

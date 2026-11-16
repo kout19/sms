@@ -104,7 +104,7 @@ async function main() {
     },
   });
 
-  const demoClass = await prisma.class.upsert({
+  const demoClass = await prisma.legacyClass.upsert({
     where: {
       schoolId_grade_section_academicYear: {
         schoolId: DEMO_SCHOOL_ID,
@@ -121,6 +121,47 @@ async function main() {
       section: "A",
       academicYear: "2026-2027",
       capacity: 40,
+    },
+  });
+  const demoSchoolClass = await prisma.class.upsert({
+    where: {
+      schoolId_grade: {
+        schoolId: DEMO_SCHOOL_ID,
+        grade: "10",
+      },
+    },
+    update: {},
+    create: {
+      schoolId: DEMO_SCHOOL_ID,
+      name: "Grade 10",
+      code: "10",
+      grade: "10",
+    },
+  });
+  const demoAcademicYear = await prisma.academicYear.upsert({
+    where: {
+      schoolId_name: {
+        schoolId: DEMO_SCHOOL_ID,
+        name: "2026-2027",
+      },
+    },
+    update: {},
+    create: {
+      schoolId: DEMO_SCHOOL_ID,
+      name: "2026-2027",
+    },
+  });
+  const demoSection = await prisma.section.upsert({
+    where: { legacyClassId: demoClass.id },
+    update: {},
+    create: {
+      schoolId: DEMO_SCHOOL_ID,
+      classId: demoSchoolClass.id,
+      name: "A",
+      code: "A",
+      academicYearId: demoAcademicYear.id,
+      capacity: 40,
+      legacyClassId: demoClass.id,
     },
   });
 
@@ -154,11 +195,38 @@ async function main() {
       };
     }
 
-    await prisma.user.upsert({
+    const seededUser = await prisma.user.upsert({
       where: { email: userData.email.toLowerCase() },
       update: {},
       create: createData,
+      select: { id: true },
     });
+
+    if (userData.studentProfile) {
+      const profile = await prisma.studentProfile.findUnique({
+        where: { userId: seededUser.id },
+        select: { id: true },
+      });
+      if (profile) {
+        await prisma.enrollment.upsert({
+          where: {
+            schoolId_studentProfileId_sectionId_academicYearId: {
+              schoolId: DEMO_SCHOOL_ID,
+              studentProfileId: profile.id,
+              sectionId: demoSection.id,
+              academicYearId: demoAcademicYear.id,
+            },
+          },
+          update: { isActive: true, endedAt: null },
+          create: {
+            schoolId: DEMO_SCHOOL_ID,
+            studentProfileId: profile.id,
+            sectionId: demoSection.id,
+            academicYearId: demoAcademicYear.id,
+          },
+        });
+      }
+    }
 
     console.log(`User created: ${userData.email}`);
   }

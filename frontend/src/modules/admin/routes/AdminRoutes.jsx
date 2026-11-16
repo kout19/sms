@@ -5,6 +5,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import Students from "../students/pages/StudentsPage";
 import Teachers from "../teachers/pages/TeachersPage";
 import Classes from "../classes/pages/ClassesPage";
+import ClassDetailsPage from "../classes/pages/ClassDetailsPage";
 import AttendancePage from "../attendance/pages/AttendancePage";
 import DepartmentsPage from "../departments/pages/DepartmentsPage";
 import DepartmentAddPage from "../departments/pages/DepartmentAddPage";
@@ -45,6 +46,9 @@ const AdminRoutes = () => {
             <Route path="teachers" element={<Teachers />} />
             <Route path="teachers/add" element={<Teachers />} />
             <Route path="classes" element={<Classes />} />
+            <Route path="classes/add" element={<Classes />} />
+            <Route path="classes/:id/edit" element={<Classes />} />
+            <Route path="classes/:id" element={<ClassDetailsPage />} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="departments" element={<DepartmentsPage />} />
             <Route path="departments/add" element={<DepartmentAddPage />} />

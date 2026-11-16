@@ -130,8 +130,14 @@ const buildStudentWhere = (schoolId, filters) => {
 const assertClassInSchool = async (schoolId, classId, excludeUserId) => {
   if (!classId) return;
 
-  const schoolClass = await prisma.class.findFirst({
-    where: { id: classId, schoolId },
+  const schoolClass = await prisma.legacyClass.findFirst({
+    where: {
+      id: classId,
+      schoolId,
+      sectionRecord: {
+        is: { isActive: true, class: { is: { isActive: true } } },
+      },
+    },
     select: { id: true, capacity: true },
   });
 
@@ -204,8 +210,13 @@ const placementKey = (grade, section, academicYear) =>
   `${grade}\u0000${section}\u0000${academicYear}`;
 
 exports.listClassesForSchool = (schoolId) =>
-  prisma.class.findMany({
-    where: { schoolId },
+  prisma.legacyClass.findMany({
+    where: {
+      schoolId,
+      sectionRecord: {
+        is: { isActive: true, class: { is: { isActive: true } } },
+      },
+    },
     select: CLASS_SELECT,
     orderBy: [{ academicYear: "desc" }, { grade: "asc" }, { section: "asc" }],
   });
@@ -262,6 +273,73 @@ const createData = (schoolId, payload, passwordHash) => ({
   },
 });
 
+const syncEnrollment = async (transaction, schoolId, studentProfileId, legacyClassId) => {
+  const activeEnrollment = await transaction.enrollment.findFirst({
+    where: { schoolId, studentProfileId, isActive: true },
+    select: { id: true, sectionId: true, academicYearId: true },
+  });
+
+  if (!legacyClassId) {
+    if (activeEnrollment) {
+      await transaction.enrollment.updateMany({
+        where: { schoolId, studentProfileId, isActive: true },
+        data: { isActive: false, endedAt: new Date() },
+      });
+    }
+    return;
+  }
+
+  const section = await transaction.section.findFirst({
+    where: {
+      schoolId,
+      legacyClassId,
+      isActive: true,
+      class: { is: { isActive: true } },
+    },
+    select: { id: true, academicYearId: true },
+  });
+  if (!section) {
+    throw new AppError("The selected class section is no longer active", 400);
+  }
+  if (
+    activeEnrollment?.sectionId === section.id &&
+    activeEnrollment.academicYearId === section.academicYearId
+  ) {
+    return;
+  }
+
+  await transaction.enrollment.updateMany({
+    where: { schoolId, studentProfileId, isActive: true },
+    data: { isActive: false, endedAt: new Date() },
+  });
+  const priorEnrollment = await transaction.enrollment.findUnique({
+    where: {
+      schoolId_studentProfileId_sectionId_academicYearId: {
+        schoolId,
+        studentProfileId,
+        sectionId: section.id,
+        academicYearId: section.academicYearId,
+      },
+    },
+    select: { id: true },
+  });
+  if (priorEnrollment) {
+    await transaction.enrollment.update({
+      where: { id: priorEnrollment.id },
+      data: { isActive: true, endedAt: null },
+    });
+  } else {
+    await transaction.enrollment.create({
+      data: {
+        schoolId,
+        studentProfileId,
+        sectionId: section.id,
+        academicYearId: section.academicYearId,
+      },
+    });
+  }
+};
+
 exports.createStudent = async (schoolId, payload) => {
   try {
     await assertClassInSchool(schoolId, emptyToNull(payload.classId));
@@ -271,8 +349,14 @@ exports.createStudent = async (schoolId, payload) => {
       await assertParentsInSchool(transaction, schoolId, parents);
       const student = await transaction.user.create({
         data: createData(schoolId, payload, passwordHash),
-        select: { id: true },
+        select: { id: true, studentProfile: { select: { id: true } } },
       });
+      await syncEnrollment(
+        transaction,
+        schoolId,
+        student.studentProfile.id,
+        emptyToNull(payload.classId),
+      );
       if (parents.length) {
         await replaceParentLinks(transaction, schoolId, student.id, parents);
       }
@@ -324,6 +408,20 @@ exports.updateStudent = async (schoolId, id, payload) => {
         data,
         select: { id: true },
       });
+      if (payload.classId !== undefined) {
+        const profile = await transaction.studentProfile.findUnique({
+          where: { userId: id },
+          select: { id: true },
+        });
+        if (profile) {
+          await syncEnrollment(
+            transaction,
+            schoolId,
+            profile.id,
+            emptyToNull(payload.classId),
+          );
+        }
+      }
       if (parents !== undefined) {
         await replaceParentLinks(transaction, schoolId, id, parents);
       }
@@ -370,8 +468,13 @@ exports.toggleStudentStatus = async (schoolId, id) => {
 };
 
 const classifyRows = async (schoolId, rawRows) => {
-  const classes = await prisma.class.findMany({
-    where: { schoolId },
+  const classes = await prisma.legacyClass.findMany({
+    where: {
+      schoolId,
+      sectionRecord: {
+        is: { isActive: true, class: { is: { isActive: true } } },
+      },
+    },
     select: { ...CLASS_SELECT },
   });
   const classByPlacement = new Map(
@@ -561,13 +664,20 @@ exports.commitImport = async (schoolId, rawRows) => {
     await prisma.$transaction(
       async (tx) => {
         for (const item of prepared) {
-          await tx.user.create({
+          const createdUser = await tx.user.create({
             data: createData(
               schoolId,
               { ...item.row, isActive: true },
               item.passwordHash,
             ),
+            select: { id: true, studentProfile: { select: { id: true } } },
           });
+          await syncEnrollment(
+            tx,
+            schoolId,
+            createdUser.studentProfile.id,
+            item.row.classId,
+          );
         }
       },
       { timeout: 30000, maxWait: 5000 },
