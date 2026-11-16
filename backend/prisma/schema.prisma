@@ -26,6 +26,13 @@ enum ExamStatus {
   cancelled
 }
 
+enum AttendanceStatus {
+  present
+  absent
+  late
+  excused
+}
+
 model School {
   id                        String                     @id @default(uuid()) @db.Uuid
   name                      String
@@ -46,6 +53,8 @@ model School {
   subjectClassLinks         SubjectClass[]
   subjectTeacherAssignments SubjectTeacherAssignment[]
   exams                     Exam[]
+  attendanceSessions        AttendanceSession[]
+  attendanceRecords         AttendanceRecord[]
 
   @@index([isActive])
   @@map("schools")
@@ -74,6 +83,7 @@ model User {
   homeroomClasses     LegacyClass[]   @relation("HomeroomTeacher")
   sectionHomerooms    Section[]       @relation("SectionHomeroomTeacher")
   departmentHeads     Department[]    @relation("DepartmentHead")
+  attendanceSessions  AttendanceSession[] @relation("AttendanceSessionTeacher")
 
   @@index([schoolId])
   @@index([schoolId, role])
@@ -160,6 +170,7 @@ model StudentProfile {
 
   parentLinks ParentStudent[]
   enrollments Enrollment[]
+  attendanceRecords AttendanceRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -243,6 +254,7 @@ model AcademicYear {
   sections    Section[]
   enrollments Enrollment[]
   exams       Exam[]
+  attendanceSessions AttendanceSession[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -270,6 +282,7 @@ model Section {
   legacyClass       LegacyClass? @relation(fields: [legacyClassId], references: [id], onDelete: SetNull)
   enrollments       Enrollment[]
   exams             Exam[]
+  attendanceSessions AttendanceSession[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
@@ -279,6 +292,51 @@ model Section {
   @@index([classId, academicYearId])
   @@index([homeroomTeacherId])
   @@map("sections")
+}
+
+model AttendanceSession {
+  id             String            @id @default(uuid()) @db.Uuid
+  schoolId       String            @db.Uuid
+  school         School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  academicYearId String            @db.Uuid
+  academicYear   AcademicYear      @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  sectionId      String            @db.Uuid
+  section        Section           @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  subjectId      String?           @db.Uuid
+  subject        Subject?          @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  teacherId      String?           @db.Uuid
+  teacher        User?             @relation("AttendanceSessionTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  attendanceDate DateTime          @db.Date
+  type           String            @default("daily")
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  records        AttendanceRecord[]
+
+  @@unique([schoolId, sectionId, academicYearId, attendanceDate, type], map: "attendance_sessions_dedupe_key")
+  @@index([schoolId, attendanceDate])
+  @@index([schoolId, sectionId, attendanceDate])
+  @@index([schoolId, academicYearId, attendanceDate])
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id               String            @id @default(uuid()) @db.Uuid
+  schoolId         String            @db.Uuid
+  school           School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  sessionId        String            @db.Uuid
+  session          AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentProfileId String            @db.Uuid
+  studentProfile   StudentProfile    @relation(fields: [studentProfileId], references: [id], onDelete: Restrict)
+  status           AttendanceStatus
+  remarks          String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([sessionId, studentProfileId], map: "attendance_records_session_student_key")
+  @@index([schoolId, sessionId])
+  @@index([schoolId, studentProfileId])
+  @@index([status])
+  @@map("attendance_records")
 }
 
 model Enrollment {
@@ -320,6 +378,7 @@ model Subject {
   classLinks         SubjectClass[]
   teacherAssignments SubjectTeacherAssignment[]
   exams              Exam[]
+  attendanceSessions AttendanceSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
