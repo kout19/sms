@@ -42,6 +42,11 @@ export async function cancelAnnouncement(id) {
   return response.data.data;
 }
 
+export async function revertAnnouncementToDraft(id) {
+  const response = await apiAxios.post(`${BASE}/${id}/draft`);
+  return response.data.data;
+}
+
 export async function archiveAnnouncement(id) {
   const response = await apiAxios.post(`${BASE}/${id}/archive`);
   return response.data.data;

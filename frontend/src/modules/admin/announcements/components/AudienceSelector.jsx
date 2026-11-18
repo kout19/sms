@@ -52,10 +52,14 @@ export default function AudienceSelector({ value, onChange, options, disabled = 
           <div className="space-y-3">
             {classes.map((schoolClass) => (
               <div key={schoolClass.id} className="rounded-lg border border-gray-100 p-3">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <input type="checkbox" checked={audience.classIds.includes(schoolClass.id)} onChange={() => update({ classIds: toggle(audience.classIds, schoolClass.id) })} />
-                  {schoolClass.name} <span className="text-xs font-normal text-gray-400">({schoolClass.code})</span>
-                </label>
+                {options?.canTargetClasses !== false ? (
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input type="checkbox" checked={audience.classIds.includes(schoolClass.id)} onChange={() => update({ classIds: toggle(audience.classIds, schoolClass.id) })} />
+                    {schoolClass.name} <span className="text-xs font-normal text-gray-400">({schoolClass.code})</span>
+                  </label>
+                ) : (
+                  <p className="text-sm font-medium text-gray-700">{schoolClass.name} <span className="text-xs font-normal text-gray-400">({schoolClass.code})</span></p>
+                )}
                 <div className="mt-2 ml-6 flex flex-wrap gap-x-4 gap-y-2">
                   {schoolClass.sections.map((section) => (
                     <label key={section.id} className="flex items-center gap-2 text-xs text-gray-600">
@@ -69,7 +73,7 @@ export default function AudienceSelector({ value, onChange, options, disabled = 
           </div>
         )}
       </fieldset>
-      <p className="text-xs text-gray-400">Overlapping targets are deduplicated when the announcement is published.</p>
+      <p className="text-xs text-gray-400">{options?.canTargetClasses === false ? "You can send to sections assigned to you. Recipients are resolved when the announcement is published." : "A class target includes every current section of that class. Overlapping targets are deduplicated when the announcement is published."}</p>
     </div>
   );
 }

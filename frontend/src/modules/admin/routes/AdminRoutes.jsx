@@ -74,16 +74,16 @@ const AdminRoutes = () => {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="announcements" element={<Announcements />} />
             <Route
-              path="announcements/:id"
-              element={<AnnouncementDetailPage />}
-            />
-            <Route
               path="announcements/new"
               element={<AnnouncementFormPage />}
             />
             <Route
               path="announcements/:id/edit"
               element={<AnnouncementFormPage />}
+            />
+            <Route
+              path="announcements/:id"
+              element={<AnnouncementDetailPage />}
             />
             <Route path="settings" element={<Settingspage />} />
             <Route path = "settings/general" element={<GeneralSettingsPage />} />

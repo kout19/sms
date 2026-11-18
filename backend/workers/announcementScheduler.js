@@ -11,10 +11,18 @@ const tick = async () => {
   if (running) return;
   running = true;
   try {
-    const [published, expired] = await Promise.all([
+    const [publishedResult, expiredResult] = await Promise.allSettled([
       processDueAnnouncements(),
       expireDueAnnouncements(),
     ]);
+    if (publishedResult.status === "rejected") {
+      console.error("Announcement publication pass failed", publishedResult.reason);
+    }
+    if (expiredResult.status === "rejected") {
+      console.error("Announcement expiry pass failed", expiredResult.reason);
+    }
+    const published = publishedResult.status === "fulfilled" ? publishedResult.value : 0;
+    const expired = expiredResult.status === "fulfilled" ? expiredResult.value : 0;
     if (published || expired) {
       console.log(`Announcement worker: published ${published}, expired ${expired}`);
     }

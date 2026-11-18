@@ -3,6 +3,7 @@ export const AUDIENCE_OPTIONS = [
   { value: "teachers", label: "Teachers" },
   { value: "students", label: "Students" },
   { value: "parents", label: "Parents" },
+  { value: "admins", label: "Administrators" },
   { value: "classes", label: "Classes" },
   { value: "sections", label: "Sections" },
 ];

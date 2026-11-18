@@ -7,6 +7,7 @@ import {
   useAnnouncementAudienceOptions,
   useCreateAnnouncement,
   usePublishAnnouncement,
+  useRevertAnnouncementToDraft,
   useScheduleAnnouncement,
   useUpdateAnnouncement,
 } from "../hooks/useAnnouncements";
@@ -16,7 +17,13 @@ import AudienceSelector from "../components/AudienceSelector";
 const emptyAudience = { allUsers: false, roles: [], classIds: [], sectionIds: [] };
 const EMPTY_FORM = { title: "", content: "", priority: "normal", expiresAt: "", audience: emptyAudience };
 
-const asLocalDateTime = (date) => date ? new Date(date).toISOString().slice(0, 16) : "";
+const asLocalDateTime = (date) => {
+  if (!date) return "";
+  const value = new Date(date);
+  const pad = (part) => String(part).padStart(2, "0");
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}T${pad(value.getHours())}:${pad(value.getMinutes())}`;
+};
+const plainText = (value) => String(value || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 const apiError = (error) => error?.response?.data?.message || error?.message || "Unable to save this announcement.";
 
 export default function AnnouncementFormPage() {
@@ -29,6 +36,7 @@ export default function AnnouncementFormPage() {
   const update = useUpdateAnnouncement();
   const publish = usePublishAnnouncement();
   const schedule = useScheduleAnnouncement();
+  const revert = useRevertAnnouncementToDraft();
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [publishOption, setPublishOption] = useState("draft");
   const [scheduledFor, setScheduledFor] = useState("");
@@ -68,7 +76,7 @@ export default function AnnouncementFormPage() {
 
   const save = async (action = "draft") => {
     setError("");
-    if (!formData.title.trim() || !formData.content.trim() || !hasAudience()) {
+    if (!formData.title.trim() || !plainText(formData.content) || !hasAudience()) {
       setError("Enter a title, message, and at least one audience target.");
       return;
     }
@@ -81,6 +89,7 @@ export default function AnnouncementFormPage() {
         ? await update.mutateAsync({ id, payload: payload() })
         : await create.mutateAsync(payload());
       const announcementId = announcement.id;
+      if (action === "draft" && existing?.status === "scheduled") await revert.mutateAsync(announcementId);
       if (action === "now") await publish.mutateAsync(announcementId);
       if (action === "schedule") await schedule.mutateAsync({ id: announcementId, scheduledFor: new Date(scheduledFor).toISOString() });
       navigate(`/admin/announcements/${announcementId}`);
@@ -89,8 +98,8 @@ export default function AnnouncementFormPage() {
     }
   };
 
-  const isSaving = create.isPending || update.isPending || publish.isPending || schedule.isPending;
-  const locked = ["published", "expired", "archived"].includes(existing?.status);
+  const isSaving = create.isPending || update.isPending || publish.isPending || schedule.isPending || revert.isPending;
+  const locked = ["published", "expired", "archived", "cancelled"].includes(existing?.status);
 
   if (isEditMode && isLoadingAnnouncement) return <div className="p-6 text-sm text-gray-400">Loading announcement...</div>;
   if (loadError) return <div className="p-6 text-sm text-rose-600">{apiError(loadError)}</div>;

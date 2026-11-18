@@ -31,7 +31,7 @@ export default function RecipientAnnouncementsPage({ title = "Announcements", su
   const detail = useRecipientAnnouncement(selectedId);
   const unread = useAnnouncementUnreadCount();
   const readState = useSetAnnouncementReadState();
-  const audienceOptions = useAnnouncementAudienceOptions();
+  const audienceOptions = useAnnouncementAudienceOptions(allowPosting);
   const create = useCreateAnnouncement();
   const publish = usePublishAnnouncement();
   const update = (field, value) => setFilters((current) => ({ ...current, [field]: value, page: field === "page" ? value : 1 }));

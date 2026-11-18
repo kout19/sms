@@ -26,7 +26,7 @@ const fields = {
   content: Joi.string().trim().min(1).max(100000),
   priority: Joi.string().valid(...priorities),
   audience,
-  expiresAt: Joi.date().iso().allow(null),
+  expiresAt: Joi.date().iso().greater("now").allow(null),
 };
 
 exports.validateCreateAnnouncement = (payload) =>

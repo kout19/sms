@@ -25,10 +25,11 @@ export function useAnnouncement(id) {
   });
 }
 
-export function useAnnouncementAudienceOptions() {
+export function useAnnouncementAudienceOptions(enabled = true) {
   return useQuery({
     queryKey: audienceKey,
     queryFn: ({ signal }) => announcementsApi.getAudienceOptions({ signal }),
+    enabled,
     staleTime: 60_000,
   });
 }
@@ -46,6 +47,7 @@ export const useUpdateAnnouncement = mutation(({ id, payload }) => announcements
 export const usePublishAnnouncement = mutation(announcementsApi.publishAnnouncement);
 export const useScheduleAnnouncement = mutation(({ id, scheduledFor }) => announcementsApi.scheduleAnnouncement(id, scheduledFor));
 export const useCancelAnnouncement = mutation(announcementsApi.cancelAnnouncement);
+export const useRevertAnnouncementToDraft = mutation(announcementsApi.revertAnnouncementToDraft);
 export const useArchiveAnnouncement = mutation(announcementsApi.archiveAnnouncement);
 export const useExpireAnnouncement = mutation(announcementsApi.expireAnnouncement);
 

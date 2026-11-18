@@ -1270,6 +1270,8 @@ model Announcement {
   @@index([schoolId, scheduledFor])
   @@index([schoolId, expiresAt])
   @@index([schoolId, authorId, createdAt])
+  @@index([status, scheduledFor], map: "announcements_status_scheduled_for_idx")
+  @@index([status, expiresAt], map: "announcements_status_expires_at_idx")
   @@map("announcements")
 }
 

@@ -19,6 +19,7 @@ router.patch("/:id", controller.update);
 router.post("/:id/publish", controller.publish);
 router.post("/:id/schedule", controller.schedule);
 router.post("/:id/cancel", controller.cancel);
+router.post("/:id/draft", controller.revertToDraft);
 router.post("/:id/archive", controller.archive);
 router.post("/:id/expire", controller.expire);
 
