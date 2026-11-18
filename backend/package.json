@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
+    "announcements:worker": "node workers/announcementScheduler.js",
     "db:generate": "prisma generate --schema prisma/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "test": "node --test",
@@ -27,7 +28,8 @@
     "joi": "^18.2.5",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.11.0",
-    "multer": "^2.5.0"
+    "multer": "^2.5.0",
+    "sanitize-html": "^2.18.2"
   },
   "devDependencies": {
     "@prisma/client": "^7.9.1",

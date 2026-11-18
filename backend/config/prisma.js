@@ -25,5 +25,13 @@ if (
     "Generated Prisma Client is missing class management models. Run `npm run db:generate` in backend and restart the server.",
   );
 }
+if (
+  typeof prisma.announcement === "undefined" ||
+  typeof prisma.announcementRecipient === "undefined"
+) {
+  throw new Error(
+    "Generated Prisma Client is missing announcement models. Run `npm run db:generate` in backend and restart the server.",
+  );
+}
 
 module.exports = prisma;

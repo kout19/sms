@@ -1,58 +1,58 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as announcementsApi from "../api/announcementsApi";
 import { makeResourceKeys } from "@shared/api/queryKeys";
 
 const announcementKeys = makeResourceKeys("announcements");
+const audienceKey = ["announcements", "audience-options"];
 
-export function useAnnouncements(filters) {
+const invalidateAnnouncements = (queryClient) => {
+  queryClient.invalidateQueries({ queryKey: announcementKeys.all });
+  queryClient.invalidateQueries({ queryKey: ["recipient-announcements"] });
+};
+
+export function useAnnouncements(filters = {}) {
   return useQuery({
     queryKey: announcementKeys.list(filters),
-    queryFn: () => announcementsApi.getAnnouncements(filters),
+    queryFn: ({ signal }) => announcementsApi.getAnnouncements(filters, { signal }),
   });
 }
 
 export function useAnnouncement(id) {
   return useQuery({
     queryKey: announcementKeys.detail(id),
-    queryFn: () => announcementsApi.getAnnouncementById(id),
+    queryFn: ({ signal }) => announcementsApi.getAnnouncementById(id, { signal }),
     enabled: Boolean(id),
   });
 }
 
-function invalidateAll(queryClient) {
-  queryClient.invalidateQueries({ queryKey: announcementKeys.lists() });
-  queryClient.invalidateQueries({ queryKey: announcementKeys.details() });
-}
-
-export function useCreateAnnouncement() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: announcementsApi.createAnnouncement,
-    onSuccess: () => invalidateAll(queryClient),
+export function useAnnouncementAudienceOptions() {
+  return useQuery({
+    queryKey: audienceKey,
+    queryFn: ({ signal }) => announcementsApi.getAudienceOptions({ signal }),
+    staleTime: 60_000,
   });
 }
 
-export function useUpdateAnnouncement() {
+const mutation = (action) => () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }) =>
-      announcementsApi.updateAnnouncement(id, payload),
-    onSuccess: () => invalidateAll(queryClient),
+    mutationFn: action,
+    onSuccess: () => invalidateAnnouncements(queryClient),
   });
-}
+};
 
-export function useArchiveAnnouncement() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: announcementsApi.archiveAnnouncement,
-    onSuccess: () => invalidateAll(queryClient),
-  });
-}
+export const useCreateAnnouncement = mutation(announcementsApi.createAnnouncement);
+export const useUpdateAnnouncement = mutation(({ id, payload }) => announcementsApi.updateAnnouncement(id, payload));
+export const usePublishAnnouncement = mutation(announcementsApi.publishAnnouncement);
+export const useScheduleAnnouncement = mutation(({ id, scheduledFor }) => announcementsApi.scheduleAnnouncement(id, scheduledFor));
+export const useCancelAnnouncement = mutation(announcementsApi.cancelAnnouncement);
+export const useArchiveAnnouncement = mutation(announcementsApi.archiveAnnouncement);
+export const useExpireAnnouncement = mutation(announcementsApi.expireAnnouncement);
 
-export function useDeleteAnnouncement() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: announcementsApi.deleteAnnouncement,
-    onSuccess: () => invalidateAll(queryClient),
+export function useAnnouncementStatistics(id) {
+  return useQuery({
+    queryKey: ["announcements", "statistics", id],
+    queryFn: ({ signal }) => announcementsApi.getAnnouncementStatistics(id, { signal }),
+    enabled: Boolean(id),
   });
 }

@@ -33,6 +33,38 @@ enum AttendanceStatus {
   excused
 }
 
+enum AnnouncementStatus {
+  draft
+  scheduled
+  published
+  expired
+  archived
+  cancelled
+}
+
+enum AnnouncementPriority {
+  normal
+  important
+  urgent
+}
+
+enum AnnouncementAudienceType {
+  all_users
+  role
+  class
+  section
+}
+
+enum AnnouncementAuditAction {
+  created
+  updated
+  scheduled
+  published
+  cancelled
+  archived
+  expired
+}
+
 model School {
   id                        String                     @id @default(uuid()) @db.Uuid
   name                      String
@@ -77,6 +109,9 @@ model School {
   expensePayments         ExpensePayment[]
   messages                 Message[]
   messageRecipients        MessageRecipient[]
+  announcements            Announcement[]
+  announcementRecipients   AnnouncementRecipient[]
+  announcementAuditEvents  AnnouncementAuditEvent[]
 
   @@index([isActive])
   @@map("schools")
@@ -123,6 +158,9 @@ model User {
   journalEntriesPosted        JournalEntry[]           @relation("JournalEntryPostedBy")
   sentMessages                Message[]                @relation("MessageSender")
   messageRecipients           MessageRecipient[]       @relation("MessageRecipientUser")
+  authoredAnnouncements       Announcement[]           @relation("AnnouncementAuthor")
+  announcementRecipients      AnnouncementRecipient[]  @relation("AnnouncementRecipientUser")
+  announcementAuditEvents     AnnouncementAuditEvent[] @relation("AnnouncementAuditActor")
 
   @@index([schoolId])
   @@index([schoolId, role])
@@ -280,6 +318,7 @@ model Class {
   isActive    Boolean   @default(true)
   sections    Section[]
   feeStructures FeeStructure[]
+  announcementAudienceRules AnnouncementAudienceRule[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -331,6 +370,7 @@ model Section {
   enrollments       Enrollment[]
   exams             Exam[]
   attendanceSessions AttendanceSession[]
+  announcementAudienceRules AnnouncementAudienceRule[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
@@ -1201,4 +1241,94 @@ model MessageRecipient {
   @@index([schoolId, recipientId, isRead], map: "message_recipients_unread_idx")
   @@index([messageId], map: "message_recipients_message_idx")
   @@map("message_recipients")
+}
+
+/// School-wide broadcast content. Audience rules describe intended targets;
+/// recipients are materialized only when the announcement is published.
+model Announcement {
+  id           String               @id @default(uuid()) @db.Uuid
+  schoolId     String               @db.Uuid
+  authorId     String               @db.Uuid
+  title        String               @db.VarChar(200)
+  content      String
+  priority     AnnouncementPriority @default(normal)
+  status       AnnouncementStatus   @default(draft)
+  scheduledFor DateTime?
+  publishedAt  DateTime?
+  expiresAt    DateTime?
+  archivedAt   DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  school        School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  author        User                     @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  audienceRules AnnouncementAudienceRule[]
+  recipients    AnnouncementRecipient[]
+  auditEvents   AnnouncementAuditEvent[]
+
+  @@index([schoolId, status, createdAt])
+  @@index([schoolId, scheduledFor])
+  @@index([schoolId, expiresAt])
+  @@index([schoolId, authorId, createdAt])
+  @@map("announcements")
+}
+
+/// One row per audience predicate selected by the author. A rule can target
+/// the whole tenant, a role, a normalized class, or a normalized section.
+model AnnouncementAudienceRule {
+  id             String                   @id @default(uuid()) @db.Uuid
+  announcementId String                   @db.Uuid
+  type           AnnouncementAudienceType
+  role           UserRole?
+  classId        String?                  @db.Uuid
+  sectionId      String?                  @db.Uuid
+  createdAt      DateTime                 @default(now())
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  class        Class?       @relation(fields: [classId], references: [id], onDelete: Restrict)
+  section      Section?     @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+
+  @@index([announcementId])
+  @@index([classId])
+  @@index([sectionId])
+  @@map("announcement_audience_rules")
+}
+
+/// Immutable publication snapshot. A null readAt represents an unread
+/// announcement for that recipient.
+model AnnouncementRecipient {
+  id             String   @id @default(uuid()) @db.Uuid
+  announcementId String   @db.Uuid
+  userId         String   @db.Uuid
+  schoolId       String   @db.Uuid
+  deliveredAt    DateTime @default(now())
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user         User         @relation("AnnouncementRecipientUser", fields: [userId], references: [id], onDelete: Restrict)
+  school       School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId], map: "announcement_recipients_announcement_user_key")
+  @@index([schoolId, userId, readAt], map: "announcement_recipients_inbox_idx")
+  @@index([announcementId, readAt], map: "announcement_recipients_read_idx")
+  @@map("announcement_recipients")
+}
+
+model AnnouncementAuditEvent {
+  id             String                   @id @default(uuid()) @db.Uuid
+  announcementId String                   @db.Uuid
+  actorId        String?                  @db.Uuid
+  schoolId       String                   @db.Uuid
+  action         AnnouncementAuditAction
+  metadata       Json?
+  createdAt      DateTime                 @default(now())
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("AnnouncementAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  school       School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId, createdAt])
+  @@index([schoolId, createdAt])
+  @@map("announcement_audit_events")
 }

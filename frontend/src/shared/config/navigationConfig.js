@@ -718,7 +718,7 @@ export const navigationConfig = {
             label: "Announcements",
             icon: "megaphone",
             path: "/teacher/announcements",
-            permission: PERMISSIONS.MANAGE_ANNOUNCEMENTS,
+            permission: PERMISSIONS.POST_ANNOUNCEMENTS,
           },
           {
             id: "messages",

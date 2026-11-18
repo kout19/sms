@@ -15,7 +15,7 @@ const PERMISSIONS_RAW = {
   VIEW_DASHBOARD: "view:dashboard",
   MANAGE_STUDENTS: "manage:students",
   MANAGE_SETTINGS: "manage:settings",
-  MANAGE_ANNOUNCEMENTS: "manage:anouncements",
+  MANAGE_ANNOUNCEMENTS: "manage:announcements",
   MANAGE_INVOICES: "manage:invoices",
   MANAGE_PARENTS:"manage:parents",
 

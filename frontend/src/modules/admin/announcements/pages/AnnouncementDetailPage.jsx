@@ -1,16 +1,18 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useAnnouncement } from "../hooks/useAnnouncements";
+import { useAnnouncementStatistics } from "../hooks/useAnnouncements";
 import AnnouncementDetailView from "../components/AnnouncementDetailView";
 
 export default function AnnouncementDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: announcement, isLoading } = useAnnouncement(id);
+  const { data: announcement, isLoading, error } = useAnnouncement(id);
+  const { data: statistics, isLoading: statisticsLoading } = useAnnouncementStatistics(id);
 
   if (isLoading)
     return <div className="p-6 text-sm text-gray-400">Loading...</div>;
-  if (!announcement)
+  if (error || !announcement)
     return (
       <div className="p-6 text-sm text-red-500">Announcement not found.</div>
     );
@@ -24,7 +26,7 @@ export default function AnnouncementDetailPage() {
         <ArrowLeft className="w-4 h-4" />
         Back to Announcements
       </button>
-      <AnnouncementDetailView announcement={announcement} />
+      <AnnouncementDetailView announcement={announcement} statistics={statistics} statisticsLoading={statisticsLoading} />
     </div>
   );
 }

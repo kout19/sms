@@ -1,264 +1,136 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import RichTextEditor from "@shared/components/RichTextEditor";
-import FileDropzone from "@shared/components/FileDropzone";
-import { AUDIENCE_OPTIONS, PRIORITY_STYLES } from "../utils/announcementConstants";
+import { PRIORITY_STYLES } from "../utils/announcementConstants";
 import {
   useAnnouncement,
+  useAnnouncementAudienceOptions,
   useCreateAnnouncement,
+  usePublishAnnouncement,
+  useScheduleAnnouncement,
   useUpdateAnnouncement,
 } from "../hooks/useAnnouncements";
 import AnnouncementPreview from "../components/AnnouncementPreview";
+import AudienceSelector from "../components/AudienceSelector";
 
-const EMPTY_FORM = {
-  title: "",
-  content: "",
-  audience: "everyone",
-  priority: "normal",
-  attachments: [],
-};
+const emptyAudience = { allUsers: false, roles: [], classIds: [], sectionIds: [] };
+const EMPTY_FORM = { title: "", content: "", priority: "normal", expiresAt: "", audience: emptyAudience };
+
+const asLocalDateTime = (date) => date ? new Date(date).toISOString().slice(0, 16) : "";
+const apiError = (error) => error?.response?.data?.message || error?.message || "Unable to save this announcement.";
 
 export default function AnnouncementFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
-  const { data: existing } = useAnnouncement(id);
-  const createAnnouncement = useCreateAnnouncement();
-  const updateAnnouncement = useUpdateAnnouncement();
-
+  const { data: existing, isLoading: isLoadingAnnouncement, error: loadError } = useAnnouncement(id);
+  const { data: audienceOptions, isLoading: isLoadingAudience, error: audienceError } = useAnnouncementAudienceOptions();
+  const create = useCreateAnnouncement();
+  const update = useUpdateAnnouncement();
+  const publish = usePublishAnnouncement();
+  const schedule = useScheduleAnnouncement();
   const [formData, setFormData] = useState(EMPTY_FORM);
-  const [publishOption, setPublishOption] = useState("draft"); // draft | now | schedule
+  const [publishOption, setPublishOption] = useState("draft");
   const [scheduledFor, setScheduledFor] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isEditMode && existing) {
-      setFormData({
-        title: existing.title,
-        content: existing.content,
-        audience: existing.audience,
-        priority: existing.priority,
-        attachments: [],
-      });
-      setPublishOption(
-        existing.status === "scheduled"
-          ? "schedule"
-          : existing.status === "published"
-            ? "now"
-            : "draft",
-      );
-      setScheduledFor(existing.scheduledFor || "");
+    if (!existing) return;
+    setFormData({
+      title: existing.title || "",
+      content: existing.content || "",
+      priority: existing.priority || "normal",
+      expiresAt: asLocalDateTime(existing.expiresAt),
+      audience: {
+        allUsers: Boolean(existing.audience?.allUsers),
+        roles: existing.audience?.roles || [],
+        classIds: (existing.audience?.classes || []).map((item) => item.id),
+        sectionIds: (existing.audience?.sections || []).map((item) => item.id),
+      },
+    });
+    setPublishOption(existing.status === "scheduled" ? "schedule" : existing.status === "published" ? "now" : "draft");
+    setScheduledFor(asLocalDateTime(existing.scheduledFor));
+  }, [existing]);
+
+  const payload = () => ({
+    title: formData.title.trim(),
+    content: formData.content,
+    priority: formData.priority,
+    expiresAt: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
+    audience: formData.audience,
+  });
+
+  const hasAudience = () => {
+    const audience = formData.audience;
+    return audience.allUsers || audience.roles.length || audience.classIds.length || audience.sectionIds.length;
+  };
+
+  const save = async (action = "draft") => {
+    setError("");
+    if (!formData.title.trim() || !formData.content.trim() || !hasAudience()) {
+      setError("Enter a title, message, and at least one audience target.");
+      return;
     }
-  }, [isEditMode, existing]);
-
-  const buildStatus = () =>
-    publishOption === "now"
-      ? "published"
-      : publishOption === "schedule"
-        ? "scheduled"
-        : "draft";
-
-  const handleSave = async () => {
-    const payload = {
-      ...formData,
-      status: buildStatus(),
-      publishDate:
-        publishOption === "now"
-          ? new Date().toISOString().slice(0, 10)
-          : publishOption === "schedule"
-            ? scheduledFor?.slice(0, 10)
-            : null,
-      scheduledFor: publishOption === "schedule" ? scheduledFor : null,
-    };
-
-    if (isEditMode) {
-      await updateAnnouncement.mutateAsync({ id, payload });
-      navigate(`/admin/announcements/${id}`);
-    } else {
-      const created = await createAnnouncement.mutateAsync(payload);
-      navigate(`/admin/announcements/${created.id}`);
+    if (action === "schedule" && !scheduledFor) {
+      setError("Choose a future publication date and time.");
+      return;
+    }
+    try {
+      const announcement = isEditMode
+        ? await update.mutateAsync({ id, payload: payload() })
+        : await create.mutateAsync(payload());
+      const announcementId = announcement.id;
+      if (action === "now") await publish.mutateAsync(announcementId);
+      if (action === "schedule") await schedule.mutateAsync({ id: announcementId, scheduledFor: new Date(scheduledFor).toISOString() });
+      navigate(`/admin/announcements/${announcementId}`);
+    } catch (requestError) {
+      setError(apiError(requestError));
     }
   };
 
-  const isSaving = createAnnouncement.isPending || updateAnnouncement.isPending;
+  const isSaving = create.isPending || update.isPending || publish.isPending || schedule.isPending;
+  const locked = ["published", "expired", "archived"].includes(existing?.status);
 
-  if (showPreview) {
-    return (
-      <div className="p-6">
-        <AnnouncementPreview
-          formData={formData}
-          onBackToEdit={() => setShowPreview(false)}
-          onSaveDraft={handleSave}
-          isSaving={isSaving}
-        />
-      </div>
-    );
-  }
+  if (isEditMode && isLoadingAnnouncement) return <div className="p-6 text-sm text-gray-400">Loading announcement...</div>;
+  if (loadError) return <div className="p-6 text-sm text-rose-600">{apiError(loadError)}</div>;
+  if (showPreview) return <div className="p-6"><AnnouncementPreview formData={formData} onBackToEdit={() => setShowPreview(false)} onSaveDraft={() => save("draft")} isSaving={isSaving} /></div>;
 
   return (
-    <div className="p-6 space-y-4 max-w-3xl">
-      <p className="text-sm text-gray-400">
-        Announcements <span className="mx-1">/</span>{" "}
-        <span className="text-gray-700 font-medium">
-          {isEditMode ? "Edit Announcement" : "New Announcement"}
-        </span>
-      </p>
+    <div className="p-6 space-y-4 max-w-4xl">
+      <p className="text-sm text-gray-400">Announcements <span className="mx-1">/</span><span className="text-gray-700 font-medium">{isEditMode ? "Edit Announcement" : "New Announcement"}</span></p>
+      {error && <div role="alert" className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+      {audienceError && <div role="alert" className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{apiError(audienceError)}</div>}
+      {locked && <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">Published content is immutable. Create a new announcement to publish a correction.</div>}
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <h3 className="font-semibold text-gray-900">Basic Information</h3>
-        <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
-            Title <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
-            Content <span className="text-rose-500">*</span>
-          </label>
-          <RichTextEditor
-            value={formData.content}
-            onChange={(html) => setFormData({ ...formData, content: html })}
-            placeholder="Write your announcement..."
-          />
-        </div>
-      </div>
+        <label className="block text-sm font-medium text-gray-700">Title <span className="text-rose-500">*</span><input disabled={locked} type="text" value={formData.title} onChange={(event) => setFormData({ ...formData, title: event.target.value })} className="mt-1.5 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm disabled:bg-gray-50" /></label>
+        <div><p className="text-sm font-medium text-gray-700 mb-1.5">Content <span className="text-rose-500">*</span></p><RichTextEditor value={formData.content} onChange={(content) => setFormData({ ...formData, content })} placeholder="Write your announcement..." disabled={locked} /></div>
+      </section>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <h3 className="font-semibold text-gray-900">Audience</h3>
-        <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
-            Send to
-          </label>
-          <select
-            value={formData.audience}
-            onChange={(e) =>
-              setFormData({ ...formData, audience: e.target.value })
-            }
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white"
-          >
-            {AUDIENCE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        {isLoadingAudience ? <p className="text-sm text-gray-400">Loading eligible classes and sections...</p> : <AudienceSelector value={formData.audience} onChange={(audience) => setFormData({ ...formData, audience })} options={audienceOptions} disabled={locked} />}
+      </section>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900">Priority</h3>
-        <div className="grid grid-cols-3 gap-3">
-          {Object.entries(PRIORITY_STYLES).map(([key, style]) => (
-            <button
-              key={key}
-              onClick={() => setFormData({ ...formData, priority: key })}
-              className={`px-4 py-2.5 rounded-lg border text-sm font-medium ${
-                formData.priority === key
-                  ? `${style.bg} ${style.text} ${style.accent}`
-                  : "border-gray-200 text-gray-500"
-              }`}
-            >
-              {style.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h3 className="font-semibold text-gray-900">Priority and expiry</h3>
+        <div className="grid grid-cols-3 gap-3">{Object.entries(PRIORITY_STYLES).map(([key, style]) => <button type="button" disabled={locked} key={key} onClick={() => setFormData({ ...formData, priority: key })} className={`px-4 py-2.5 rounded-lg border text-sm font-medium ${formData.priority === key ? `${style.bg} ${style.text} ${style.accent}` : "border-gray-200 text-gray-500"}`}>{style.label}</button>)}</div>
+        <label className="block text-sm font-medium text-gray-700">Expire after <span className="font-normal text-gray-400">(optional)</span><input disabled={locked} type="datetime-local" value={formData.expiresAt} onChange={(event) => setFormData({ ...formData, expiresAt: event.target.value })} className="mt-1.5 block px-3 py-2 rounded-lg border border-gray-200 text-sm disabled:bg-gray-50" /></label>
+      </section>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900">Attachments</h3>
-        <FileDropzone
-          files={formData.attachments}
-          onChange={(files) => setFormData({ ...formData, attachments: files })}
-          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-          maxSizeMB={10}
-          hint="PDF, DOC, DOCX, JPG, PNG up to 10MB"
-        />
-      </div>
-
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <h3 className="font-semibold text-gray-900">Publishing</h3>
-        <div className="space-y-2">
-          {[
-            {
-              key: "draft",
-              label: "Save as Draft",
-              desc: "Save without publishing",
-            },
-            {
-              key: "now",
-              label: "Publish Now",
-              desc: "Publish immediately to all recipients",
-            },
-            {
-              key: "schedule",
-              label: "Schedule",
-              desc: "Set a date and time to auto-publish",
-            },
-          ].map((opt) => (
-            <label
-              key={opt.key}
-              className={`flex items-start gap-3 px-4 py-3 rounded-lg border cursor-pointer ${publishOption === opt.key ? "border-indigo-300 bg-indigo-50/40" : "border-gray-200"}`}
-            >
-              <input
-                type="radio"
-                checked={publishOption === opt.key}
-                onChange={() => setPublishOption(opt.key)}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium text-gray-900">{opt.label}</p>
-                <p className="text-xs text-gray-400">{opt.desc}</p>
-              </div>
-            </label>
-          ))}
-        </div>
-        {publishOption === "schedule" && (
-          <input
-            type="datetime-local"
-            value={scheduledFor}
-            onChange={(e) => setScheduledFor(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
-          />
-        )}
-
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <button
-            onClick={() => navigate("/admin/announcements")}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
-          >
-            Cancel
-          </button>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowPreview(true)}
-              className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50"
-            >
-              Preview
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !formData.title.trim()}
-              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium disabled:opacity-50"
-            >
-              {isSaving
-                ? "Saving..."
-                : publishOption === "now"
-                  ? "Publish"
-                  : publishOption === "schedule"
-                    ? "Schedule"
-                    : "Save Draft"}
-            </button>
-          </div>
-        </div>
-      </div>
+        {!locked && <div className="space-y-2">{[
+          { key: "draft", label: "Save as Draft", desc: "Save without publishing." },
+          { key: "now", label: "Publish Now", desc: "Create the recipient snapshot and deliver immediately." },
+          { key: "schedule", label: "Schedule", desc: "Publish later using the announcement worker." },
+        ].map((option) => <label key={option.key} className={`flex items-start gap-3 px-4 py-3 rounded-lg border cursor-pointer ${publishOption === option.key ? "border-indigo-300 bg-indigo-50/40" : "border-gray-200"}`}><input type="radio" checked={publishOption === option.key} onChange={() => setPublishOption(option.key)} className="mt-0.5" /><span><span className="block text-sm font-medium text-gray-900">{option.label}</span><span className="block text-xs text-gray-400">{option.desc}</span></span></label>)}</div>}
+        {publishOption === "schedule" && !locked && <input type="datetime-local" value={scheduledFor} onChange={(event) => setScheduledFor(event.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm" />}
+        <p className="text-sm text-gray-500">Attachments are not yet supported because this SMS has no shared file-storage service.</p>
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100"><button type="button" onClick={() => navigate("/admin/announcements")} className="px-4 py-2 text-sm font-medium text-gray-600">Cancel</button><div className="flex items-center gap-3">{!locked && <button type="button" onClick={() => setShowPreview(true)} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600">Preview</button>}{!locked && <button type="button" onClick={() => save(publishOption)} disabled={isSaving || isLoadingAudience} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium disabled:opacity-50">{isSaving ? "Saving..." : publishOption === "now" ? "Publish" : publishOption === "schedule" ? "Schedule" : "Save Draft"}</button>}</div></div>
+      </section>
     </div>
   );
 }

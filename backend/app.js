@@ -19,6 +19,8 @@ const examRoutes = require("./modules/exams/exam.routes");
 const attendanceRoutes = require("./modules/attendance/attendance.routes");
 const reportsRoutes = require("./modules/reports/reports.routes");
 const messageRoutes = require("./modules/messages/message.routes");
+const announcementAdminRoutes = require("./modules/announcements/announcement.admin.routes");
+const announcementRecipientRoutes = require("./modules/announcements/announcement.recipient.routes");
 
 const app = express();
 
@@ -70,6 +72,10 @@ app.use("/api/v1/admin", reportsRoutes);
 
 // ---- Messages ----
 app.use("/api/v1/messages", messageRoutes);
+
+// ---- Announcements ----
+app.use("/api/v1/announcements/admin", announcementAdminRoutes);
+app.use("/api/v1/announcements/inbox", announcementRecipientRoutes);
 
 //-----Teachers routes-----
 

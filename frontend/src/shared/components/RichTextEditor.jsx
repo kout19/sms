@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Bold, Italic, List, Link } from "lucide-react";
 
-export default function RichTextEditor({ value, onChange, placeholder }) {
+export default function RichTextEditor({ value, onChange, placeholder, disabled = false }) {
   const editorRef = useRef(null);
   const isFirstRender = useRef(true);
 
@@ -13,6 +13,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   }, [value]);
 
   const exec = (command, arg) => {
+    if (disabled) return;
     document.execCommand(command, false, arg);
     editorRef.current?.focus();
     onChange(editorRef.current?.innerHTML || "");
@@ -28,6 +29,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-gray-100 bg-gray-50">
         <button
           type="button"
+          disabled={disabled}
           onClick={() => exec("bold")}
           className="p-1.5 rounded hover:bg-gray-200 text-gray-600"
         >
@@ -35,6 +37,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={() => exec("italic")}
           className="p-1.5 rounded hover:bg-gray-200 text-gray-600"
         >
@@ -42,6 +45,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={() => exec("insertUnorderedList")}
           className="p-1.5 rounded hover:bg-gray-200 text-gray-600"
         >
@@ -49,6 +53,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={handleLink}
           className="p-1.5 rounded hover:bg-gray-200 text-gray-600"
         >
@@ -58,9 +63,11 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
       <div
         ref={editorRef}
         contentEditable
-        onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        onInput={(e) => !disabled && onChange(e.currentTarget.innerHTML)}
         data-placeholder={placeholder}
-        className="min-h-[140px] px-4 py-3 text-sm text-gray-800 focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+        contentEditable={!disabled}
+        aria-disabled={disabled}
+        className="min-h-[140px] px-4 py-3 text-sm text-gray-800 focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 disabled:bg-gray-50"
       />
     </div>
   );

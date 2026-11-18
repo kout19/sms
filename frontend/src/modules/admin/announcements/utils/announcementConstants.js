@@ -3,6 +3,8 @@ export const AUDIENCE_OPTIONS = [
   { value: "teachers", label: "Teachers" },
   { value: "students", label: "Students" },
   { value: "parents", label: "Parents" },
+  { value: "classes", label: "Classes" },
+  { value: "sections", label: "Sections" },
 ];
 
 export const PRIORITY_STYLES = {
@@ -35,4 +37,6 @@ export const STATUS_STYLES = {
     text: "text-emerald-700",
   },
   archived: { label: "Archived", bg: "bg-amber-50", text: "text-amber-700" },
+  expired: { label: "Expired", bg: "bg-slate-100", text: "text-slate-600" },
+  cancelled: { label: "Cancelled", bg: "bg-rose-50", text: "text-rose-700" },
 };
