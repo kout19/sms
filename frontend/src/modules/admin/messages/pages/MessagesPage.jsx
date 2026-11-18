@@ -10,9 +10,11 @@ export default function MessagesPage() {
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
   const markAsRead = useMarkAsRead();
 
-  const handleSelectConversation = (id) => {
-    setActiveConversationId(id);
-    markAsRead.mutate(id);
+  const handleSelectConversation = (conversation) => {
+    setActiveConversationId(conversation.id);
+    if (conversation.unreadCount > 0) {
+      markAsRead.mutate(conversation.id);
+    }
   };
 
   return (
@@ -41,6 +43,7 @@ export default function MessagesPage() {
         <MessageThread
           conversationId={activeConversationId}
           onStartNew={() => setIsNewMessageOpen(true)}
+          onDeleted={() => setActiveConversationId(null)}
         />
       </div>
 

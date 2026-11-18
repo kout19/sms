@@ -75,6 +75,8 @@ model School {
   journalLines            JournalLine[]
   paymentAllocations      PaymentAllocation[]
   expensePayments         ExpensePayment[]
+  messages                 Message[]
+  messageRecipients        MessageRecipient[]
 
   @@index([isActive])
   @@map("schools")
@@ -119,6 +121,8 @@ model User {
   accountingPeriodsClosed     AccountingPeriod[]      @relation("AccountingPeriodClosedBy")
   journalEntriesCreated       JournalEntry[]           @relation("JournalEntryCreatedBy")
   journalEntriesPosted        JournalEntry[]           @relation("JournalEntryPostedBy")
+  sentMessages                Message[]                @relation("MessageSender")
+  messageRecipients           MessageRecipient[]       @relation("MessageRecipientUser")
 
   @@index([schoolId])
   @@index([schoolId, role])
@@ -1138,4 +1142,63 @@ model JournalLine {
   @@index([paymentId])
   @@index([expenseId])
   @@map("journal_lines")
+}
+
+/// Internal school messaging.
+/// A Message is a single email-like unit authored by one sender. When it is
+/// addressed to several users, one MessageRecipient row is created per
+/// recipient so read/archive/trash state is independent per recipient.
+/// Replies are modeled as a Message whose `parentMessageId` points at the
+/// message being replied to, giving a conversation/thread structure without
+/// duplicating standalone messages.
+model Message {
+  id              String   @id @default(uuid()) @db.Uuid
+  schoolId        String   @db.Uuid
+  senderId        String   @db.Uuid
+  subject         String   @db.VarChar(200)
+  body            String
+  // Optional previous message this one replies to (threading).
+  parentMessageId String?  @db.Uuid
+  // Soft-delete marker for the sender's own view (does not affect recipients).
+  deletedBySender Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  school        School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  sender        User               @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  parentMessage Message?           @relation("MessageThread", fields: [parentMessageId], references: [id], onDelete: SetNull)
+  replies       Message[]          @relation("MessageThread")
+  recipients    MessageRecipient[]
+
+  @@index([schoolId, senderId, createdAt])
+  @@index([schoolId, createdAt])
+  @@index([parentMessageId])
+  @@map("messages")
+}
+
+/// One row per (message, recipient). Holds recipient-specific state so that
+/// each recipient has an independent read/unread, archive and trash state.
+model MessageRecipient {
+  id          String    @id @default(uuid()) @db.Uuid
+  messageId   String    @db.Uuid
+  recipientId String    @db.Uuid
+  schoolId    String    @db.Uuid
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  isArchived  Boolean   @default(false)
+  archivedAt  DateTime?
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  recipient User    @relation("MessageRecipientUser", fields: [recipientId], references: [id], onDelete: Cascade)
+  school    School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, recipientId], map: "message_recipients_message_recipient_key")
+  @@index([schoolId, recipientId, isDeleted, isArchived], map: "message_recipients_inbox_idx")
+  @@index([schoolId, recipientId, isRead], map: "message_recipients_unread_idx")
+  @@index([messageId], map: "message_recipients_message_idx")
+  @@map("message_recipients")
 }

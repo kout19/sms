@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useAuth } from "../../../auth/hooks/useAuth";
 import { useDirectorySearch } from "../hooks/useMessages";
 
 export default function RecipientPicker({ role, selected, onChange }) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const { data: results = [] } = useDirectorySearch(role, query);
+  const { user } = useAuth();
+  const {
+    data: results = [],
+    isLoading,
+    isError,
+  } = useDirectorySearch(role, query, user?.id);
 
   const availableResults = results.filter(
     (r) => !selected.some((s) => s.id === r.id),
@@ -50,17 +56,31 @@ export default function RecipientPicker({ role, selected, onChange }) {
         />
       </div>
 
-      {isOpen && availableResults.length > 0 && (
+      {isOpen && (
         <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg py-1 z-10 max-h-48 overflow-y-auto">
-          {availableResults.map((person) => (
-            <button
-              key={person.id}
-              onClick={() => addRecipient(person)}
-              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              {person.name}
-            </button>
-          ))}
+          {isLoading ? (
+            <p className="px-3 py-2 text-sm text-gray-400">Searching...</p>
+          ) : isError ? (
+            <p role="alert" className="px-3 py-2 text-sm text-rose-600">
+              Recipients could not be loaded.
+            </p>
+          ) : availableResults.length ? (
+            availableResults.map((person) => (
+              <button
+                type="button"
+                key={person.id}
+                onClick={() => addRecipient(person)}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                <span>{person.name}</span>
+                <span className="block text-xs text-gray-400">{person.email}</span>
+              </button>
+            ))
+          ) : (
+            <p className="px-3 py-2 text-sm text-gray-400">
+              No available recipients found.
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -1,290 +1,128 @@
 import apiAxios from "@shared/api/axios";
 
-const BASE = "/admin/messages";
-const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
+const BASE = "/messages";
 
-const now = new Date();
-const hoursAgo = (h) => new Date(now.getTime() - h * 3600 * 1000).toISOString();
-const daysAgo = (d) =>
-  new Date(now.getTime() - d * 24 * 3600 * 1000).toISOString();
+const getPayload = (response) => response.data?.data;
 
-// MOCK DATA - backend/modules/messages/ doesn't exist yet.
-let MOCK_CONVERSATIONS = [
-  {
-    id: "c1",
-    participantName: "Hana Tesfaye",
-    role: "teacher",
-    isOnline: true,
-    lastMessageAt: hoursAgo(0.3),
-    preview: "Can you check the attendance report...",
-    unreadCount: 2,
-    isStarred: true,
-    isArchived: false,
-  },
-  {
-    id: "c2",
-    participantName: "Daniel Bekele",
-    role: "parent",
-    isOnline: false,
-    lastMessageAt: hoursAgo(2),
-    preview: "Thank you for the update. We will m...",
-    unreadCount: 0,
-    isStarred: false,
-    isArchived: false,
-  },
-  {
-    id: "c3",
-    participantName: "Meron Alemu",
-    role: "department_head",
-    isOnline: true,
-    lastMessageAt: daysAgo(1),
-    preview: "The curriculum review meeting is co...",
-    unreadCount: 1,
-    isStarred: true,
-    isArchived: false,
-  },
-  {
-    id: "c4",
-    participantName: "Samuel Girma",
-    role: "accountant",
-    isOnline: false,
-    lastMessageAt: daysAgo(1),
-    preview: "The updated fee schedule has been...",
-    unreadCount: 0,
-    isStarred: false,
-    isArchived: false,
-  },
-  {
-    id: "c5",
-    participantName: "Rahel Worku",
-    role: "teacher",
-    isOnline: false,
-    lastMessageAt: daysAgo(3),
-    preview: "I've submitted the mid-term grades f...",
-    unreadCount: 0,
-    isStarred: false,
-    isArchived: false,
-  },
-];
-
-let MOCK_MESSAGES = {
-  c1: [
-    {
-      id: "m1",
-      senderId: "them",
-      type: "text",
-      text: "Good morning. I noticed that two of my students — Biruk Kebede and Selamawit Haile — are marked absent in the system for yesterday, May 17th. I can confirm they were both present in my 9 AM class.",
-      sentAt: hoursAgo(1.5),
-    },
-    {
-      id: "m2",
-      senderId: "me",
-      type: "text",
-      text: "Good morning, Ms. Tesfaye. Thank you for flagging this. I'll look into the attendance records right away and correct any errors.",
-      sentAt: hoursAgo(1.4),
-      status: "read",
-    },
-    {
-      id: "m3",
-      senderId: "them",
-      type: "file",
-      fileName: "class_register_may17.pdf",
-      fileSize: "284 KB",
-      sentAt: hoursAgo(1.3),
-    },
-    {
-      id: "m4",
-      senderId: "them",
-      type: "text",
-      text: "I've attached a screenshot from my class register showing both students signed in. Please let me know once it's corrected so their parents aren't notified incorrectly.",
-      sentAt: hoursAgo(1.3),
-    },
-    {
-      id: "m5",
-      senderId: "me",
-      type: "text",
-      text: "Got it — I can see the discrepancy. It looks like the system marked them absent due to a sync issue with the biometric scanner. I'll correct both records now and flag the issue to the IT team.",
-      sentAt: hoursAgo(1.2),
-      status: "delivered",
-    },
-  ],
-  c2: [
-    {
-      id: "m6",
-      senderId: "them",
-      type: "text",
-      text: "Thank you for the update. We will make sure Daniel is dropped off on time going forward.",
-      sentAt: hoursAgo(2),
-    },
-  ],
-  c3: [
-    {
-      id: "m7",
-      senderId: "them",
-      type: "text",
-      text: "The curriculum review meeting is confirmed for Thursday at 2 PM in the staff room.",
-      sentAt: daysAgo(1),
-    },
-  ],
-  c4: [
-    {
-      id: "m8",
-      senderId: "them",
-      type: "text",
-      text: "The updated fee schedule has been uploaded to the finance portal for your review.",
-      sentAt: daysAgo(1),
-    },
-  ],
-  c5: [
-    {
-      id: "m9",
-      senderId: "them",
-      type: "text",
-      text: "I've submitted the mid-term grades for Grade 11A. Let me know if anything looks off.",
-      sentAt: daysAgo(3),
-    },
-  ],
-};
-
-const MOCK_DIRECTORY = {
-  teacher: [
-    { id: "u1", name: "Hana Tesfaye" },
-    { id: "u2", name: "Rahel Worku" },
-    { id: "u3", name: "Girma Alemu" },
-  ],
-  parent: [
-    { id: "u4", name: "Daniel Bekele" },
-    { id: "u5", name: "Tigist Hailu" },
-  ],
-  student: [
-    { id: "u6", name: "Biruk Kebede" },
-    { id: "u7", name: "Selamawit Haile" },
-  ],
-  accountant: [{ id: "u8", name: "Samuel Girma" }],
-  department_head: [{ id: "u9", name: "Meron Alemu" }],
-};
-
-export const getConversations = async (filters = {}) => {
-  // TODO: const response = await apiAxios.get(BASE, { params: filters }); return response.data.data;
-  await delay();
-  let results = [...MOCK_CONVERSATIONS];
-
-  if (filters.tab === "unread")
-    results = results.filter((c) => c.unreadCount > 0 && !c.isArchived);
-  else if (filters.tab === "starred")
-    results = results.filter((c) => c.isStarred && !c.isArchived);
-  else if (filters.tab === "archived")
-    results = results.filter((c) => c.isArchived);
-  else results = results.filter((c) => !c.isArchived); // "all" excludes archived, matching standard inbox convention
-
-  if (filters.roles?.length)
-    results = results.filter((c) => filters.roles.includes(c.role));
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter(
-      (c) =>
-        c.participantName.toLowerCase().includes(q) ||
-        c.preview.toLowerCase().includes(q),
-    );
-  }
-
-  return results.sort(
-    (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt),
+const mapConversation = (conversation, currentUserId) => {
+  const participants = conversation.participants || [];
+  const otherParticipants = participants.filter(
+    (participant) => participant.id !== currentUserId,
   );
-};
+  const participantName =
+    otherParticipants.map((participant) => participant.name).join(", ") ||
+    conversation.participantName ||
+    "Unknown participant";
 
-export const getConversationThread = async (conversationId) => {
-  // TODO: const response = await apiAxios.get(`${BASE}/${conversationId}`); return response.data.data;
-  await delay(150);
-  const conversation = MOCK_CONVERSATIONS.find((c) => c.id === conversationId);
-  return { conversation, messages: MOCK_MESSAGES[conversationId] || [] };
-};
-
-export const sendReply = async (conversationId, { text, attachment }) => {
-  // TODO: const response = await apiAxios.post(`${BASE}/${conversationId}/messages`, { text, attachment }); return response.data.data;
-  await delay(200);
-  const message = {
-    id: crypto.randomUUID(),
-    senderId: "me",
-    type: attachment ? "file" : "text",
-    text,
-    fileName: attachment?.name,
-    fileSize: attachment?.size,
-    sentAt: new Date().toISOString(),
-    status: "sent",
+  return {
+    ...conversation,
+    participantName,
+    role:
+      conversation.role ||
+      (otherParticipants.length === 1 ? otherParticipants[0].role : null),
+    preview: conversation.preview || "",
+    lastMessageAt: conversation.lastMessageAt || conversation.createdAt,
+    unreadCount: Number(conversation.unreadCount || 0),
+    isArchived: Boolean(conversation.isArchived),
+    isOnline: false,
   };
-  MOCK_MESSAGES[conversationId] = [
-    ...(MOCK_MESSAGES[conversationId] || []),
-    message,
-  ];
-  const convo = MOCK_CONVERSATIONS.find((c) => c.id === conversationId);
-  if (convo) {
-    convo.preview = text || attachment?.name;
-    convo.lastMessageAt = message.sentAt;
+};
+
+export const getConversations = async (
+  { folder = "all", search = "", role = "", page = 1, limit = 20 } = {},
+  currentUserId,
+  { signal } = {},
+) => {
+  const sent = folder === "sent";
+  const params = { search, page, limit };
+  if (role) params.role = role;
+  if (!sent) {
+    params.tab = folder === "unread" || folder === "archived" ? folder : "all";
   }
-  return message;
-};
-
-export const createConversation = async ({
-  recipientIds,
-  role,
-  subject,
-  text,
-  attachment,
-}) => {
-  // TODO: const response = await apiAxios.post(BASE, payload); return response.data.data;
-  await delay(250);
-  const created = recipientIds.map((id) => {
-    const person = MOCK_DIRECTORY[role]?.find((p) => p.id === id);
-    const conversation = {
-      id: crypto.randomUUID(),
-      participantName: person?.name || "Unknown",
-      role,
-      isOnline: false,
-      lastMessageAt: new Date().toISOString(),
-      preview: subject ? `${subject}: ${text}` : text,
-      unreadCount: 0,
-      isStarred: false,
-      isArchived: false,
-    };
-    MOCK_CONVERSATIONS = [conversation, ...MOCK_CONVERSATIONS];
-    MOCK_MESSAGES[conversation.id] = [
-      {
-        id: crypto.randomUUID(),
-        senderId: "me",
-        type: "text",
-        text: subject ? `${subject}\n\n${text}` : text,
-        sentAt: conversation.lastMessageAt,
-        status: "sent",
-      },
-    ];
-    return conversation;
+  const response = await apiAxios.get(sent ? BASE + "/sent" : BASE + "/inbox", {
+    params,
+    signal,
   });
-  return created;
+  return {
+    data: (response.data?.data || []).map((item) =>
+      mapConversation(item, currentUserId),
+    ),
+    meta: response.data?.meta || { page, limit, total: 0, totalPages: 0 },
+  };
 };
 
-export const toggleStar = async (conversationId) => {
-  const convo = MOCK_CONVERSATIONS.find((c) => c.id === conversationId);
-  if (convo) convo.isStarred = !convo.isStarred;
-  return convo;
+export const getConversationThread = async (
+  conversationId,
+  currentUserId,
+  { signal } = {},
+) => {
+  const response = await apiAxios.get(BASE + "/thread/" + conversationId, {
+    signal,
+  });
+  const thread = getPayload(response);
+  return {
+    conversation: mapConversation(thread.conversation, currentUserId),
+    messages: (thread.messages || []).map((message) => ({
+      ...message,
+      text: message.body,
+      sentAt: message.createdAt,
+      isMine: message.senderId === currentUserId,
+    })),
+  };
 };
 
-export const toggleArchive = async (conversationId) => {
-  const convo = MOCK_CONVERSATIONS.find((c) => c.id === conversationId);
-  if (convo) convo.isArchived = !convo.isArchived;
-  return convo;
+export const sendReply = async (conversationId, { text }) => {
+  const response = await apiAxios.post(BASE + "/" + conversationId + "/reply", {
+    body: text,
+  });
+  return getPayload(response);
+};
+
+export const createConversation = async ({ recipientIds, subject, text }) => {
+  const response = await apiAxios.post(BASE, {
+    recipientIds,
+    subject,
+    body: text,
+  });
+  return getPayload(response);
+};
+
+export const setArchiveState = async (conversationId, isArchived) => {
+  const action = isArchived ? "archive" : "unarchive";
+  const response = await apiAxios.patch(
+    BASE + "/" + conversationId + "/" + action,
+  );
+  return getPayload(response);
 };
 
 export const markAsRead = async (conversationId) => {
-  const convo = MOCK_CONVERSATIONS.find((c) => c.id === conversationId);
-  if (convo) convo.unreadCount = 0;
-  return convo;
+  const response = await apiAxios.patch(
+    BASE + "/" + conversationId + "/read",
+  );
+  return getPayload(response);
 };
 
-export const searchDirectory = async (role, query = "") => {
-  // TODO: const response = await apiAxios.get(`${BASE}/directory`, { params: { role, query } }); return response.data.data;
-  await delay(150);
-  const pool = MOCK_DIRECTORY[role] || [];
-  if (!query) return pool;
-  return pool.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+export const markAsUnread = async (conversationId) => {
+  const response = await apiAxios.patch(
+    BASE + "/" + conversationId + "/unread",
+  );
+  return getPayload(response);
+};
+
+export const moveToTrash = async (conversationId) => {
+  const response = await apiAxios.delete(BASE + "/" + conversationId);
+  return getPayload(response);
+};
+
+export const getUnreadCount = async ({ signal } = {}) => {
+  const response = await apiAxios.get(BASE + "/unread-count", { signal });
+  return Number(getPayload(response)?.count || 0);
+};
+
+export const searchDirectory = async (role, search = "", { signal } = {}) => {
+  const response = await apiAxios.get(BASE + "/recipients", {
+    params: { role, search, limit: 50 },
+    signal,
+  });
+  return getPayload(response) || [];
 };

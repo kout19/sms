@@ -1,30 +1,37 @@
 import { useState } from "react";
 import { Search, Filter } from "lucide-react";
+import { useAuth } from "../../../auth/hooks/useAuth";
 import { FILTER_TABS, ROLE_TAG_STYLES } from "../utils/messageConstants";
-import { useConversations, useToggleStar } from "../hooks/useMessages";
+import {
+  useConversations,
+  useUnreadMessageCount,
+} from "../hooks/useMessages";
 import ConversationListItem from "./ConversationListItem";
+
+const PAGE_SIZE = 20;
 
 export default function ConversationListSidebar({
   activeConversationId,
   onSelectConversation,
 }) {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
-  const [roleFilter, setRoleFilter] = useState([]);
+  const [roleFilter, setRoleFilter] = useState("");
   const [isRoleFilterOpen, setIsRoleFilterOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const { data: conversations = [] } = useConversations({
-    search,
-    tab,
-    roles: roleFilter,
-  });
-  const { data: unreadList = [] } = useConversations({ tab: "unread" });
-  const toggleStar = useToggleStar();
+  const conversationsQuery = useConversations(
+    { search, folder: tab, role: roleFilter, page, limit: PAGE_SIZE },
+    user?.id,
+  );
+  const conversations = conversationsQuery.data?.data || [];
+  const pageInfo = conversationsQuery.data?.meta;
+  const unreadQuery = useUnreadMessageCount(user?.id);
 
-  const toggleRole = (role) => {
-    setRoleFilter((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role],
-    );
+  const changeTab = (nextTab) => {
+    setTab(nextTab);
+    setPage(1);
   };
 
   return (
@@ -36,59 +43,81 @@ export default function ConversationListSidebar({
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
               placeholder="Search messages..."
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div className="relative">
             <button
-              onClick={() => setIsRoleFilterOpen((prev) => !prev)}
-              className={`p-2 rounded-lg border ${roleFilter.length ? "border-indigo-500 text-indigo-600" : "border-gray-200 text-gray-400"}`}
+              type="button"
+              aria-label="Filter conversations by role"
+              onClick={() => setIsRoleFilterOpen((open) => !open)}
+              className={
+                "p-2 rounded-lg border " +
+                (roleFilter
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-gray-200 text-gray-400")
+              }
             >
               <Filter className="w-4 h-4" />
             </button>
             {isRoleFilterOpen && (
-              <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg p-2 z-10">
-                <p className="text-xs font-semibold text-gray-400 uppercase px-2 py-1">
-                  Filter by role
-                </p>
-                {Object.entries(ROLE_TAG_STYLES).map(([key, style]) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 rounded cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={roleFilter.includes(key)}
-                      onChange={() => toggleRole(key)}
-                      className="rounded border-gray-300"
-                    />
-                    {style.label}
-                  </label>
-                ))}
+              <div className="absolute right-0 mt-1 w-52 bg-white rounded-lg border border-gray-200 shadow-lg p-3 z-10">
+                <label
+                  htmlFor="message-role-filter"
+                  className="text-xs font-semibold text-gray-500 uppercase"
+                >
+                  Filter by participant role
+                </label>
+                <select
+                  id="message-role-filter"
+                  value={roleFilter}
+                  onChange={(event) => {
+                    setRoleFilter(event.target.value);
+                    setPage(1);
+                  }}
+                  className="mt-2 w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm"
+                >
+                  <option value="">All roles</option>
+                  {Object.entries(ROLE_TAG_STYLES).map(([key, style]) => (
+                    <option key={key} value={key}>
+                      {style.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          {FILTER_TABS.map((t) => (
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {FILTER_TABS.map((item) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                tab === t.key
+              type="button"
+              key={item.key}
+              onClick={() => changeTab(item.key)}
+              className={
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap " +
+                (tab === item.key
                   ? "bg-indigo-600 text-white"
-                  : "text-gray-500 hover:bg-gray-50"
-              }`}
+                  : "text-gray-500 hover:bg-gray-50")
+              }
             >
-              {t.label}
-              {t.key === "unread" && unreadList.length > 0 && (
+              {item.label}
+              {item.key === "unread" && unreadQuery.data > 0 && (
                 <span
-                  className={`text-xs rounded-full px-1.5 ${tab === "unread" ? "bg-white/20" : "bg-indigo-100 text-indigo-600"}`}
+                  className={
+                    "text-xs rounded-full px-1.5 " +
+                    (tab === "unread"
+                      ? "bg-white/20"
+                      : "bg-indigo-100 text-indigo-600")
+                  }
                 >
-                  {unreadList.length}
+                  {unreadQuery.data}
                 </span>
               )}
             </button>
@@ -97,22 +126,59 @@ export default function ConversationListSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {conversations.length === 0 ? (
+        {conversationsQuery.isLoading ? (
+          <p className="text-sm text-gray-400 text-center py-8">
+            Loading messages...
+          </p>
+        ) : conversationsQuery.isError ? (
+          <p role="alert" className="text-sm text-rose-600 text-center p-4">
+            {conversationsQuery.error?.response?.data?.message ||
+              conversationsQuery.error?.message ||
+              "Messages could not be loaded."}
+          </p>
+        ) : conversations.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">
             No conversations found.
           </p>
         ) : (
-          conversations.map((c) => (
+          conversations.map((conversation) => (
             <ConversationListItem
-              key={c.id}
-              conversation={c}
-              isActive={c.id === activeConversationId}
-              onClick={() => onSelectConversation(c.id)}
-              onToggleStar={() => toggleStar.mutate(c.id)}
+              key={conversation.id}
+              conversation={conversation}
+              isActive={conversation.id === activeConversationId}
+              onClick={() => onSelectConversation(conversation)}
             />
           ))
         )}
       </div>
+
+      {pageInfo?.totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 text-sm">
+          <button
+            type="button"
+            disabled={page <= 1 || conversationsQuery.isFetching}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            className="text-indigo-600 disabled:text-gray-300"
+          >
+            Previous
+          </button>
+          <span className="text-gray-500">
+            Page {pageInfo.page} of {pageInfo.totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={
+              page >= pageInfo.totalPages || conversationsQuery.isFetching
+            }
+            onClick={() =>
+              setPage((current) => Math.min(pageInfo.totalPages, current + 1))
+            }
+            className="text-indigo-600 disabled:text-gray-300"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Paperclip } from "lucide-react";
 import Modal from "@shared/components/AttendanceModal";
 import { ROLE_TAG_STYLES } from "../utils/messageConstants";
 import { useCreateConversation } from "../hooks/useMessages";
@@ -10,7 +9,6 @@ export default function NewMessageModal({ isOpen, onClose, onSent }) {
   const [recipients, setRecipients] = useState([]);
   const [subject, setSubject] = useState("");
   const [text, setText] = useState("");
-  const [attachment, setAttachment] = useState(null);
   const createConversation = useCreateConversation();
 
   const reset = () => {
@@ -18,7 +16,7 @@ export default function NewMessageModal({ isOpen, onClose, onSent }) {
     setRecipients([]);
     setSubject("");
     setText("");
-    setAttachment(null);
+    createConversation.reset();
   };
 
   const handleClose = () => {
@@ -27,16 +25,18 @@ export default function NewMessageModal({ isOpen, onClose, onSent }) {
   };
 
   const handleSend = async () => {
-    if (recipients.length === 0 || !text.trim()) return;
-    await createConversation.mutateAsync({
-      recipientIds: recipients.map((r) => r.id),
-      role,
-      subject: subject.trim(),
-      text: text.trim(),
-      attachment,
-    });
-    reset();
-    onSent?.();
+    if (!recipients.length || !subject.trim() || !text.trim()) return;
+    try {
+      const result = await createConversation.mutateAsync({
+        recipientIds: recipients.map((recipient) => recipient.id),
+        subject: subject.trim(),
+        text: text.trim(),
+      });
+      reset();
+      onSent?.(result);
+    } catch {
+      // The API error is displayed in the form.
+    }
   };
 
   return (
@@ -48,19 +48,19 @@ export default function NewMessageModal({ isOpen, onClose, onSent }) {
       footer={
         <div className="flex items-center justify-end gap-3">
           <button
+            type="button"
             onClick={handleClose}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
           >
             Cancel
           </button>
-          <button className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
-            Save Draft
-          </button>
           <button
+            type="button"
             onClick={handleSend}
             disabled={
               createConversation.isPending ||
-              recipients.length === 0 ||
+              !recipients.length ||
+              !subject.trim() ||
               !text.trim()
             }
             className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium disabled:opacity-50"
@@ -71,14 +71,25 @@ export default function NewMessageModal({ isOpen, onClose, onSent }) {
       }
     >
       <div className="px-6 py-4 space-y-4">
+        {createConversation.isError && (
+          <p role="alert" className="text-sm text-rose-600">
+            {createConversation.error?.response?.data?.message ||
+              createConversation.error?.message ||
+              "Your message could not be sent."}
+          </p>
+        )}
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
+          <label
+            htmlFor="message-recipient-role"
+            className="text-sm font-medium text-gray-700 block mb-1.5"
+          >
             Recipient Type
           </label>
           <select
+            id="message-recipient-role"
             value={role}
-            onChange={(e) => {
-              setRole(e.target.value);
+            onChange={(event) => {
+              setRole(event.target.value);
               setRecipients([]);
             }}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -103,43 +114,38 @@ export default function NewMessageModal({ isOpen, onClose, onSent }) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
-            Subject
+          <label
+            htmlFor="message-subject"
+            className="text-sm font-medium text-gray-700 block mb-1.5"
+          >
+            Subject <span className="text-rose-500">*</span>
           </label>
           <input
+            id="message-subject"
             type="text"
             value={subject}
-            onChange={(e) => setSubject(e.target.value)}
+            onChange={(event) => setSubject(event.target.value)}
+            maxLength={200}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
-            Message
+          <label
+            htmlFor="message-body"
+            className="text-sm font-medium text-gray-700 block mb-1.5"
+          >
+            Message <span className="text-rose-500">*</span>
           </label>
           <textarea
+            id="message-body"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(event) => setText(event.target.value)}
             rows={5}
+            maxLength={20000}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
-
-        <label className="flex items-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-gray-200 text-sm text-gray-500 cursor-pointer hover:border-gray-300">
-          <Paperclip className="w-4 h-4" />
-          {attachment ? attachment.name : "Click to attach a file"}
-          <input
-            type="file"
-            className="hidden"
-            onChange={(e) =>
-              e.target.files[0] && setAttachment(e.target.files[0])
-            }
-          />
-        </label>
-        <p className="text-xs text-gray-400 -mt-3">
-          PDF, DOCX, XLSX, PNG — max 20MB
-        </p>
       </div>
     </Modal>
   );

@@ -1,4 +1,5 @@
 export const ROLE_TAG_STYLES = {
+  admin: { label: "Admin", bg: "bg-indigo-50", text: "text-indigo-600" },
   teacher: { label: "Teacher", bg: "bg-sky-50", text: "text-sky-600" },
   parent: { label: "Parent", bg: "bg-amber-50", text: "text-amber-600" },
   department_head: {
@@ -11,8 +12,8 @@ export const ROLE_TAG_STYLES = {
 };
 
 export const FILTER_TABS = [
-  { key: "all", label: "All" },
+  { key: "all", label: "Inbox" },
   { key: "unread", label: "Unread" },
-  { key: "starred", label: "Starred" },
+  { key: "sent", label: "Sent" },
   { key: "archived", label: "Archived" },
 ];

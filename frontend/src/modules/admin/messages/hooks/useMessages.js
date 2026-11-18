@@ -3,33 +3,41 @@ import * as messagesApi from "../api/messagesApi";
 import { makeResourceKeys } from "@shared/api/queryKeys";
 
 const messageKeys = makeResourceKeys("messages");
+const unreadCountKey = [...messageKeys.all, "unread-count"];
 
-export function useConversations(filters) {
+const invalidateMessages = (queryClient) =>
+  Promise.all([
+    queryClient.invalidateQueries({ queryKey: messageKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: messageKeys.details() }),
+    queryClient.invalidateQueries({ queryKey: unreadCountKey }),
+  ]);
+
+export function useConversations(filters, currentUserId) {
   return useQuery({
-    queryKey: messageKeys.list(filters),
-    queryFn: () => messagesApi.getConversations(filters),
+    queryKey: messageKeys.list({ ...filters, currentUserId }),
+    queryFn: ({ signal }) =>
+      messagesApi.getConversations(filters, currentUserId, { signal }),
+    enabled: Boolean(currentUserId),
   });
 }
 
-export function useConversationThread(conversationId) {
+export function useConversationThread(conversationId, currentUserId) {
   return useQuery({
-    queryKey: messageKeys.detail(conversationId),
-    queryFn: () => messagesApi.getConversationThread(conversationId),
-    enabled: Boolean(conversationId),
+    queryKey: [...messageKeys.details(), currentUserId, conversationId],
+    queryFn: ({ signal }) =>
+      messagesApi.getConversationThread(conversationId, currentUserId, {
+        signal,
+      }),
+    enabled: Boolean(conversationId && currentUserId),
   });
 }
 
 export function useSendReply() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ conversationId, text, attachment }) =>
-      messagesApi.sendReply(conversationId, { text, attachment }),
-    onSuccess: (_data, { conversationId }) => {
-      queryClient.invalidateQueries({
-        queryKey: messageKeys.detail(conversationId),
-      });
-      queryClient.invalidateQueries({ queryKey: messageKeys.lists() });
-    },
+    mutationFn: ({ conversationId, text }) =>
+      messagesApi.sendReply(conversationId, { text }),
+    onSuccess: () => invalidateMessages(queryClient),
   });
 }
 
@@ -37,26 +45,16 @@ export function useCreateConversation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: messagesApi.createConversation,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: messageKeys.lists() }),
-  });
-}
-
-export function useToggleStar() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: messagesApi.toggleStar,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: messageKeys.lists() }),
+    onSuccess: invalidateMessages.bind(null, queryClient),
   });
 }
 
 export function useToggleArchive() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: messagesApi.toggleArchive,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: messageKeys.lists() }),
+    mutationFn: ({ conversationId, isArchived }) =>
+      messagesApi.setArchiveState(conversationId, isArchived),
+    onSuccess: invalidateMessages.bind(null, queryClient),
   });
 }
 
@@ -64,15 +62,40 @@ export function useMarkAsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: messagesApi.markAsRead,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: messageKeys.lists() }),
+    onSuccess: invalidateMessages.bind(null, queryClient),
   });
 }
 
-export function useDirectorySearch(role, query) {
+export function useMarkAsUnread() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: messagesApi.markAsUnread,
+    onSuccess: invalidateMessages.bind(null, queryClient),
+  });
+}
+
+export function useMoveToTrash() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: messagesApi.moveToTrash,
+    onSuccess: invalidateMessages.bind(null, queryClient),
+  });
+}
+
+export function useUnreadMessageCount(currentUserId) {
   return useQuery({
-    queryKey: [...messageKeys.all, "directory", role, query],
-    queryFn: () => messagesApi.searchDirectory(role, query),
-    enabled: Boolean(role),
+    queryKey: [...unreadCountKey, currentUserId],
+    queryFn: ({ signal }) => messagesApi.getUnreadCount({ signal }),
+    refetchInterval: 60_000,
+    enabled: Boolean(currentUserId),
+  });
+}
+
+export function useDirectorySearch(role, search, currentUserId) {
+  return useQuery({
+    queryKey: [...messageKeys.all, "directory", currentUserId, role, search],
+    queryFn: ({ signal }) =>
+      messagesApi.searchDirectory(role, search, { signal }),
+    enabled: Boolean(role && currentUserId),
   });
 }
